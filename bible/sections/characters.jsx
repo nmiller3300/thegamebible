@@ -108,7 +108,7 @@ function CharacterCard({ c, onEdit, onDelete }) {
         </div>
         <StatusPill status={c.status || 'confirmed'} />
       </div>
-      {c.imagePlaceholderLabel ? <div style={{ marginBottom: 14 }}><ImageSlot label={c.imagePlaceholderLabel} height={170} /></div> : null}
+      <div style={{ marginBottom: 14 }}><ImageSlot value={c.imageUrl || ''} onChange={(url) => { Yc.updateEntry('characters', c.id, {imageUrl: url}); }} height={170} /></div>
       <div className="meta-row">
         <div className="k">Faction</div>      <div className={'v ' + (c.factionAlignment ? '' : 'empty')}>{c.factionAlignment || '—'}</div>
         <div className="k">Class standing</div><div className={'v ' + (c.classStanding ? '' : 'empty')}>{c.classStanding || '—'}</div>
@@ -142,7 +142,7 @@ function CharacterForm({ open, entry, onClose, onSave }) {
     setD({
       name:'', role:'', location:'', factionAlignment:'', classStanding:'', magicStatus:'',
       appearance:'', personality:'', motivation:'', secret:'', reputationModifier:'',
-      questHook:'', notes:'', imagePlaceholderLabel:'', status:'confirmed', ...(entry || {}),
+      questHook:'', notes:'', imageUrl:'', status:'confirmed', ...(entry || {}),
     });
   }, [entry, open]);
   function set(k, v) { setD((p) => ({ ...p, [k]: v })); }
@@ -176,7 +176,7 @@ function CharacterForm({ open, entry, onClose, onSave }) {
       </Field>
       <Field label="Quest hook"><TextArea value={d.questHook} onChange={(v) => set('questHook', v)} rows={2} /></Field>
       <Field label="Notes"><TextArea value={d.notes} onChange={(v) => set('notes', v)} rows={2} /></Field>
-      <Field label="Image placeholder label"><TextInput value={d.imagePlaceholderLabel} onChange={(v) => set('imagePlaceholderLabel', v)} placeholder="Portrait — three-quarter view" /></Field>
+      <Field label="Image"><ImageSlot value={d.imageUrl || ''} onChange={(v) => set('imageUrl', v)} height={180} /></Field>
       <div className="modal-actions">
         <ConfirmedToggle value={d.status === 'confirmed'} onChange={(b) => set('status', b ? 'confirmed' : 'pending')} />
         <div className="right">

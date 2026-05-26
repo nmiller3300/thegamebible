@@ -143,7 +143,7 @@ function ArtifactCard({ a, onEdit, onDelete }) {
         </div>
         <StatusPill status={a.status || 'confirmed'} />
       </div>
-      {a.imagePlaceholderLabel && <div style={{ marginBottom: 14 }}><ImageSlot label={a.imagePlaceholderLabel} height={160} /></div>}
+      <div style={{ marginBottom: 14 }}><ImageSlot value={a.imageUrl || ''} onChange={(url) => { Ya.updateEntry('artifacts', a.id, {imageUrl: url}); }} height={160} /></div>
       {a.appearance && <Field2 label="Appearance" body={a.appearance} />}
       {a.powerAbility && <Field2 label="Power" body={a.powerAbility} />}
       <div className="meta-row" style={{ marginTop: 10 }}>
@@ -174,7 +174,7 @@ function ArtifactForm({ open, entry, tiers, onClose, onSave }) {
     setD({
       name:'', artifactType: ARTIFACT_TYPES[0], tier: tiers[0] || '',
       appearance:'', powerAbility:'', origin:'', currentLocation:'', lore:'',
-      costCurse:'', imagePlaceholderLabel:'', status:'confirmed', ...(entry || {}),
+      costCurse:'', imageUrl:'', status:'confirmed', ...(entry || {}),
     });
   }, [entry, open, tiers]);
   function set(k, v) { setD((p) => ({ ...p, [k]: v })); }
@@ -199,7 +199,7 @@ function ArtifactForm({ open, entry, tiers, onClose, onSave }) {
       </div>
       <Field label="Lore and legend"><TextArea value={d.lore} onChange={(v) => set('lore', v)} rows={3} /></Field>
       <Field label="Cost or curse"><TextArea value={d.costCurse} onChange={(v) => set('costCurse', v)} rows={2} /></Field>
-      <Field label="Image placeholder label"><TextInput value={d.imagePlaceholderLabel} onChange={(v) => set('imagePlaceholderLabel', v)} placeholder="Held on a velvet pad" /></Field>
+      <Field label="Image"><ImageSlot value={d.imageUrl || ''} onChange={(v) => set('imageUrl', v)} height={180} /></Field>
       <div className="modal-actions">
         <ConfirmedToggle value={d.status === 'confirmed'} onChange={(b) => set('status', b ? 'confirmed' : 'pending')} />
         <div className="right">

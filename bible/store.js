@@ -359,6 +359,23 @@
     return formatStamp(iso);
   }
 
+
+  async function uploadImage(file) {
+    var allowed = ["jpg","jpeg","png","webp","gif","avif"];
+    var ext = (file.name || "").split(".").pop().toLowerCase();
+    if (!allowed.includes(ext)) throw new Error("Supported: JPG, PNG, WebP, GIF");
+    var path = "img_" + Date.now().toString(36) + "_" + Math.random().toString(36).slice(2,8) + "." + ext;
+    var r = await db.storage.from("images").upload(path, file, { contentType: file.type || "image/jpeg", upsert: false });
+    if (r.error) throw new Error(r.error.message);
+    var pub = db.storage.from("images").getPublicUrl(path);
+    return pub.data.publicUrl;
+  }
+  async function deleteImage(url) {
+    if (!url) return;
+    var parts = url.split("/images/");
+    if (parts[1]) await db.storage.from("images").remove([parts[1]]).catch(console.error);
+  }
+
   window.YSTC = {
     uid: uid, nowISO: nowISO, db: db,
     store: function() { return store; },
@@ -371,6 +388,7 @@
     saveWorldBlock: saveWorldBlock, saveMilitaryBlock: saveMilitaryBlock,
     saveSocialBlock: saveSocialBlock, saveLoreBlock: saveLoreBlock, saveEconomyBlock: saveEconomyBlock,
     loadAllData: loadAllData,
+    uploadImage: uploadImage, deleteImage: deleteImage,
     formatStamp: formatStamp, relativeStamp: relativeStamp,
     resetAll: function() { if (!confirm('Reload all data from server?')) return; loadAllData(); },
   };

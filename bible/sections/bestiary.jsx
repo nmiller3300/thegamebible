@@ -357,7 +357,7 @@ function CreatureForm({ open, entry, categories, onClose, onSave }) {
     setD({
       name: '', category: categories[0] || '', type: '', habitat: '',
       intelligence: '', threatLevel: '', appearance: '', lore: '',
-      behaviors: '', magicConnection: '', imagePlaceholderLabel: '',
+      behaviors: '', magicConnection: '', imageUrl: '',
       status: 'confirmed', ...(entry || {}),
     });
   }, [entry, open, categories]);
@@ -389,8 +389,8 @@ function CreatureForm({ open, entry, categories, onClose, onSave }) {
       <Field label="Notable behaviors"><TextArea value={d.behaviors} onChange={(v) => set('behaviors', v)} rows={2} /></Field>
       <Field label="Connection to magic"><TextArea value={d.magicConnection} onChange={(v) => set('magicConnection', v)} rows={2}
         placeholder="None / Ascended-linked / Veilborn-affected / unknown" /></Field>
-      <Field label="Image placeholder label" hint="A short caption indicating what concept art belongs here. Optional. Leaves a designed empty slot when set.">
-        <TextInput value={d.imagePlaceholderLabel} onChange={(v) => set('imagePlaceholderLabel', v)} placeholder="Side profile — neutral stance" />
+      <Field label="Image">
+        <ImageSlot value={d.imageUrl || ''} onChange={(v) => set('imageUrl', v)} height={180} />
       </Field>
 
       <ModelFileSlot

@@ -217,28 +217,64 @@ function EmptyState({ icon = 'scroll', title, body, action, dark }) {
   );
 }
 
-// ── Image placeholder slot (designed empty state for image fields) ───────
-function ImageSlot({ label = 'Image placeholder', height = 200 }) {
+// ── Image upload component — click to upload, shows preview when filled ──
+function ImageSlot({ label = 'Click to upload image', height = 200, value, onChange }) {
+  const [uploading, setUploading] = useState(false);
+  const inputRef = useRef(null);
+
+  async function handleFile(e) {
+    var file = e.target.files[0];
+    if (!file) return;
+    setUploading(true);
+    try {
+      var url = await window.YSTC.uploadImage(file);
+      if (onChange) onChange(url);
+    } catch(err) {
+      alert('Upload failed: ' + (err.message || 'Unknown error'));
+    }
+    setUploading(false);
+    e.target.value = '';
+  }
+
+  if (value) {
+    return (
+      <div style={{ position: 'relative', borderRadius: 2, overflow: 'hidden' }}>
+        <img src={value} alt="entry image" style={{ width: '100%', height: height, objectFit: 'cover', display: 'block' }} />
+        <button
+          type="button"
+          onClick={() => { if(onChange) onChange(''); }}
+          style={{ position:'absolute', top:8, right:8, background:'var(--imperial)', color:'var(--paper)', border:'none', borderRadius:2, padding:'4px 10px', cursor:'pointer', fontFamily:'var(--mono)', fontSize:10, letterSpacing:'0.12em', textTransform:'uppercase' }}
+        >
+          Remove
+        </button>
+        <button
+          type="button"
+          onClick={() => inputRef.current && inputRef.current.click()}
+          style={{ position:'absolute', top:8, left:8, background:'oklch(0.16 0.014 60 / 0.75)', color:'var(--paper)', border:'none', borderRadius:2, padding:'4px 10px', cursor:'pointer', fontFamily:'var(--mono)', fontSize:10, letterSpacing:'0.12em', textTransform:'uppercase' }}
+        >
+          Replace
+        </button>
+        <input ref={inputRef} type="file" accept="image/*" onChange={handleFile} style={{ display:'none' }} />
+      </div>
+    );
+  }
+
   return (
     <div
-      style={{
-        height,
-        background: 'oklch(0.93 0.018 80 / 0.55)',
-        border: '1.5px dashed var(--paper-3)',
-        borderRadius: 2,
-        display: 'flex',
-        flexDirection: 'column',
-        alignItems: 'center',
-        justifyContent: 'center',
-        color: 'var(--ink-mute)',
-        gap: 8,
-        textAlign: 'center',
-        padding: 12,
-      }}
+      onClick={() => !uploading && inputRef.current && inputRef.current.click()}
+      style={{ height, background:'oklch(0.93 0.018 80 / 0.55)', border:'1.5px dashed var(--paper-3)', borderRadius:2, display:'flex', flexDirection:'column', alignItems:'center', justifyContent:'center', cursor: uploading ? 'wait' : 'pointer', gap:8, textAlign:'center', padding:12, transition:'background 0.15s' }}
     >
-      <Icon name="image" size={26} stroke={1.4} />
-      <div style={{ fontFamily: 'var(--mono)', fontSize: 10.5, letterSpacing: '0.16em', textTransform: 'uppercase' }}>Plate · placeholder</div>
-      <div style={{ fontStyle: 'italic', fontSize: 14 }}>{label}</div>
+      <input ref={inputRef} type="file" accept="image/*" onChange={handleFile} style={{ display:'none' }} />
+      {uploading ? (
+        <div style={{ fontFamily:'var(--mono)', fontSize:11, letterSpacing:'0.14em', textTransform:'uppercase', color:'var(--ink-mute)' }}>Uploading…</div>
+      ) : (
+        <>
+          <Icon name="image" size={26} stroke={1.4} style={{ color:'var(--ink-mute)' }} />
+          <div style={{ fontFamily:'var(--mono)', fontSize:10.5, letterSpacing:'0.16em', textTransform:'uppercase', color:'var(--ink-mute)' }}>Click to upload</div>
+          <div style={{ fontStyle:'italic', fontSize:13, color:'var(--ink-mute)' }}>{label}</div>
+          <div style={{ fontFamily:'var(--mono)', fontSize:9.5, letterSpacing:'0.1em', color:'var(--ink-mute)', opacity:0.6, textTransform:'uppercase' }}>JPG · PNG · WebP · GIF</div>
+        </>
+      )}
     </div>
   );
 }

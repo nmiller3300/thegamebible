@@ -104,17 +104,9 @@ function Sidebar({ route, navigate }) {
       <div style={{ flex: 1 }}></div>
       <div style={{ padding: '20px 20px 14px', borderTop: '1px solid var(--rule-dark)', marginTop: 18 }}>
         <div className="tiny-label dark" style={{ marginBottom: 6 }}>Studio</div>
-        <div style={{ fontFamily: 'var(--serif)', fontStyle: 'italic', fontSize: 14, color: 'var(--ash)' }}>
-          Prototype. In-browser persistence.
+        <div style={{ fontFamily: 'var(--mono)', fontSize: 10, letterSpacing: '0.14em', textTransform: 'uppercase', color: 'var(--ash)', opacity: 0.6 }}>
+          Live · Supabase · thegamebible.netlify.app
         </div>
-        <button
-          className="btn small ghost"
-          style={{ marginTop: 10 }}
-          onClick={() => Y_.resetAll()}
-          title="Wipe local prototype data"
-        >
-          Reset prototype
-        </button>
       </div>
     </nav>
   );
