@@ -107,7 +107,7 @@ function Attrib({ entry, action = 'updated' }) {
   return (
     <span className="attrib">
       <span>{action}</span>
-      <b>{who || '\u2014'}</b>
+      <b>{who || '—'}</b>
       <span className="sep">·</span>
       <span>{window.YSTC.formatStamp(when)}</span>
     </span>

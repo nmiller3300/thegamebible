@@ -55,7 +55,7 @@ function SocietySection() {
             isConfirmed={store.socialBlocks[k].isConfirmed}
             onChange={(p) => patchBlock(k, p)}
             emptyHint={
-              k === 'townRep'    ? 'Local effects \u2014 shop prices, quest access, guard behavior, marriage eligibility.' :
+              k === 'townRep'    ? 'Local effects — shop prices, quest access, guard behavior, marriage eligibility.' :
               k === 'factionRep' ? 'Alliances, military support, trade deals, assassination attempts, bounties.' :
               k === 'worldRep'   ? 'Notoriety triggers when the player makes the whole world take notice.' :
               k === 'culture'    ? 'Greetings, table manners, taboos, how each region speaks of outsiders.' :

@@ -103,24 +103,24 @@ function CharacterCard({ c, onEdit, onDelete }) {
     <article className={'paper-card' + (c.status === 'pending' ? ' tbd' : '')}>
       <div className="card-head">
         <div>
-          <div className="eyebrow muted">{c.role || 'Person'}{c.location ? ' \u00b7 ' + c.location : ''}</div>
+          <div className="eyebrow muted">{c.role || 'Person'}{c.location ? ' · ' + c.location : ''}</div>
           <h3>{c.name || 'Unnamed character'}</h3>
         </div>
         <StatusPill status={c.status || 'confirmed'} />
       </div>
       {c.imagePlaceholderLabel ? <div style={{ marginBottom: 14 }}><ImageSlot label={c.imagePlaceholderLabel} height={170} /></div> : null}
       <div className="meta-row">
-        <div className="k">Faction</div>      <div className={'v ' + (c.factionAlignment ? '' : 'empty')}>{c.factionAlignment || '\u2014'}</div>
-        <div className="k">Class standing</div><div className={'v ' + (c.classStanding ? '' : 'empty')}>{c.classStanding || '\u2014'}</div>
-        <div className="k">Magic status</div> <div className={'v ' + (c.magicStatus ? '' : 'empty')}>{c.magicStatus || '\u2014'}</div>
-        <div className="k">Reputation mod</div><div className={'v ' + (c.reputationModifier ? '' : 'empty')}>{c.reputationModifier || '\u2014'}</div>
+        <div className="k">Faction</div>      <div className={'v ' + (c.factionAlignment ? '' : 'empty')}>{c.factionAlignment || '—'}</div>
+        <div className="k">Class standing</div><div className={'v ' + (c.classStanding ? '' : 'empty')}>{c.classStanding || '—'}</div>
+        <div className="k">Magic status</div> <div className={'v ' + (c.magicStatus ? '' : 'empty')}>{c.magicStatus || '—'}</div>
+        <div className="k">Reputation mod</div><div className={'v ' + (c.reputationModifier ? '' : 'empty')}>{c.reputationModifier || '—'}</div>
       </div>
       {c.appearance && <Field2 label="Appearance" body={c.appearance} />}
       {c.personality && <Field2 label="Personality" body={c.personality} />}
       {c.motivation && <Field2 label="Motivation" body={c.motivation} />}
       {c.secret && (
         <div style={{ marginTop: 8, padding: '10px 12px', background: 'oklch(0.45 0.135 27 / 0.07)', borderLeft: '2px solid var(--imperial)' }}>
-          <div className="tiny-label" style={{ color: 'var(--imperial)' }}>Secret \u00b7 internal</div>
+          <div className="tiny-label" style={{ color: 'var(--imperial)' }}>Secret · internal</div>
           <p style={{ fontSize: 14.5, margin: '4px 0 0', color: 'var(--ink)' }}>{c.secret}</p>
         </div>
       )}
@@ -151,13 +151,13 @@ function CharacterForm({ open, entry, onClose, onSave }) {
       <div className="modal-head">
         <div>
           <h2>{entry ? 'Edit character' : 'Add a character'}</h2>
-          <div className="tiny-label" style={{ marginTop: 6 }}>Characters \u00b7 named person</div>
+          <div className="tiny-label" style={{ marginTop: 6 }}>Characters · named person</div>
         </div>
         <div className="doc-code">CHAR-001 · ENTRY</div>
       </div>
       <div className="field-row">
         <Field label="Name"><TextInput value={d.name} onChange={(v) => set('name', v)} placeholder="Cassiana Vell" /></Field>
-        <Field label="Role"><Select value={d.role} onChange={(v) => set('role', v)} options={['', ...CHAR_ROLES]} placeholder="\u2014" /></Field>
+        <Field label="Role"><Select value={d.role} onChange={(v) => set('role', v)} options={['', ...CHAR_ROLES]} placeholder="—" /></Field>
       </div>
       <div className="field-row">
         <Field label="Location"><TextInput value={d.location} onChange={(v) => set('location', v)} /></Field>
@@ -165,8 +165,8 @@ function CharacterForm({ open, entry, onClose, onSave }) {
       </div>
       <div className="field-row three">
         <Field label="Class standing"><TextInput value={d.classStanding} onChange={(v) => set('classStanding', v)} placeholder="Minor noble" /></Field>
-        <Field label="Magic status"><Select value={d.magicStatus} onChange={(v) => set('magicStatus', v)} options={['', ...MAGIC_STATUS]} placeholder="\u2014" /></Field>
-        <Field label="Reputation modifier"><TextInput value={d.reputationModifier} onChange={(v) => set('reputationModifier', v)} placeholder="+2 nobles · \u22122 peasants" /></Field>
+        <Field label="Magic status"><Select value={d.magicStatus} onChange={(v) => set('magicStatus', v)} options={['', ...MAGIC_STATUS]} placeholder="—" /></Field>
+        <Field label="Reputation modifier"><TextInput value={d.reputationModifier} onChange={(v) => set('reputationModifier', v)} placeholder="+2 nobles · −2 peasants" /></Field>
       </div>
       <Field label="Appearance"><TextArea value={d.appearance} onChange={(v) => set('appearance', v)} rows={2} /></Field>
       <Field label="Personality (2 to 3 words)"><TextInput value={d.personality} onChange={(v) => set('personality', v)} placeholder="Cold, patient, hungry" /></Field>
@@ -176,7 +176,7 @@ function CharacterForm({ open, entry, onClose, onSave }) {
       </Field>
       <Field label="Quest hook"><TextArea value={d.questHook} onChange={(v) => set('questHook', v)} rows={2} /></Field>
       <Field label="Notes"><TextArea value={d.notes} onChange={(v) => set('notes', v)} rows={2} /></Field>
-      <Field label="Image placeholder label"><TextInput value={d.imagePlaceholderLabel} onChange={(v) => set('imagePlaceholderLabel', v)} placeholder="Portrait \u2014 three-quarter view" /></Field>
+      <Field label="Image placeholder label"><TextInput value={d.imagePlaceholderLabel} onChange={(v) => set('imagePlaceholderLabel', v)} placeholder="Portrait — three-quarter view" /></Field>
       <div className="modal-actions">
         <ConfirmedToggle value={d.status === 'confirmed'} onChange={(b) => set('status', b ? 'confirmed' : 'pending')} />
         <div className="right">

@@ -127,8 +127,8 @@ function LoreSection() {
                     {events.map((ev) => (
                       <tr key={ev.id}>
                         <td className="k">{ev.eventName}</td>
-                        <td>{ev.whoInvolved || <span className="empty">\u2014</span>}</td>
-                        <td>{ev.lastingImpact || <span className="empty">\u2014</span>}</td>
+                        <td>{ev.whoInvolved || <span className="empty">—</span>}</td>
+                        <td>{ev.lastingImpact || <span className="empty">—</span>}</td>
                         <td>
                           <div className="row">
                             <button className="btn small on-paper" onClick={() => setEditingEvent({ eraId: era.id, entry: ev })}><Icon name="pencil" size={10}/></button>
@@ -189,7 +189,7 @@ function EraEditor({ era, onClose, onSave }) {
   return (
     <Modal open={true} onClose={onClose}>
       <div className="modal-head">
-        <div><h2>Edit era</h2><div className="tiny-label" style={{ marginTop:6 }}>Era \u00b7 timeline slot</div></div>
+        <div><h2>Edit era</h2><div className="tiny-label" style={{ marginTop:6 }}>Era · timeline slot</div></div>
         <div className="doc-code">LORE-001 · ERA</div>
       </div>
       <div className="field-row">

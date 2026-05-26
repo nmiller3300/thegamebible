@@ -138,7 +138,7 @@ function ArtifactCard({ a, onEdit, onDelete }) {
     <article className={'paper-card' + (a.status === 'pending' ? ' tbd' : '')}>
       <div className="card-head">
         <div>
-          <div className="eyebrow muted">{a.tier || 'Untiered'} \u00b7 {a.artifactType || '\u2014'}</div>
+          <div className="eyebrow muted">{a.tier || 'Untiered'} · {a.artifactType || '—'}</div>
           <h3>{a.name}</h3>
         </div>
         <StatusPill status={a.status || 'confirmed'} />
@@ -147,8 +147,8 @@ function ArtifactCard({ a, onEdit, onDelete }) {
       {a.appearance && <Field2 label="Appearance" body={a.appearance} />}
       {a.powerAbility && <Field2 label="Power" body={a.powerAbility} />}
       <div className="meta-row" style={{ marginTop: 10 }}>
-        <div className="k">Origin</div>          <div className={'v ' + (a.origin ? '' : 'empty')}>{a.origin || '\u2014'}</div>
-        <div className="k">Current location</div><div className={'v ' + (a.currentLocation ? '' : 'empty')}>{a.currentLocation || '\u2014'}</div>
+        <div className="k">Origin</div>          <div className={'v ' + (a.origin ? '' : 'empty')}>{a.origin || '—'}</div>
+        <div className="k">Current location</div><div className={'v ' + (a.currentLocation ? '' : 'empty')}>{a.currentLocation || '—'}</div>
       </div>
       {a.lore && <Field2 label="Lore" body={a.lore} />}
       {a.costCurse && (
@@ -181,7 +181,7 @@ function ArtifactForm({ open, entry, tiers, onClose, onSave }) {
   return (
     <Modal open={open} onClose={onClose} width="wide">
       <div className="modal-head">
-        <div><h2>{entry ? 'Edit artifact' : 'Add an artifact'}</h2><div className="tiny-label" style={{ marginTop:6 }}>Artifacts \u00b7 entry</div></div>
+        <div><h2>{entry ? 'Edit artifact' : 'Add an artifact'}</h2><div className="tiny-label" style={{ marginTop:6 }}>Artifacts · entry</div></div>
         <div className="doc-code">RELIC-001 · ENTRY</div>
       </div>
       <div className="field-row three">
@@ -194,7 +194,7 @@ function ArtifactForm({ open, entry, tiers, onClose, onSave }) {
       <div className="field-row">
         <Field label="Origin"><TextInput value={d.origin} onChange={(v) => set('origin', v)} /></Field>
         <Field label="Current location" hint="Type Unknown or Lost to surface this in the Lost Artifacts subsection.">
-          <TextInput value={d.currentLocation} onChange={(v) => set('currentLocation', v)} placeholder="Lost \u00b7 last seen in the Ash Hills" />
+          <TextInput value={d.currentLocation} onChange={(v) => set('currentLocation', v)} placeholder="Lost · last seen in the Ash Hills" />
         </Field>
       </div>
       <Field label="Lore and legend"><TextArea value={d.lore} onChange={(v) => set('lore', v)} rows={3} /></Field>

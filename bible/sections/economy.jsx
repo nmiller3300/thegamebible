@@ -49,7 +49,7 @@ function EconomySection() {
           isConfirmed={b.tradeGoods.isConfirmed}
           onChange={(rows) => setRows('tradeGoods', rows)}
           onStatusChange={(v) => patch('tradeGoods', { isConfirmed: v })}
-          emptyHint="Salt, wool, iron, parchment, exotic spice \u2014 what moves and what it costs."
+          emptyHint="Salt, wool, iron, parchment, exotic spice — what moves and what it costs."
         />
       </div>
 
@@ -60,13 +60,13 @@ function EconomySection() {
           emptyHint="Rules for market stalls and full stores, location effects on profitability, staffing, taxation, robbery, destruction." />
         <ProseBlock title="Guilds and trade organizations" body={b.guilds.content} isConfirmed={b.guilds.isConfirmed}
           onChange={(p) => patch('guilds', p)}
-          emptyHint="Smiths, masons, scribes, brokers \u2014 who they are, how they keep prices steady, what they cost to join." />
+          emptyHint="Smiths, masons, scribes, brokers — who they are, how they keep prices steady, what they cost to join." />
         <ProseBlock title="Black market and illegal trade" body={b.blackMarket.content} isConfirmed={b.blackMarket.isConfirmed}
           onChange={(p) => patch('blackMarket', p)}
           emptyHint="Contraband, who deals in it, risk versus reward." />
         <ProseBlock title="Economic events" body={b.events.content} isConfirmed={b.events.isConfirmed}
           onChange={(p) => patch('events', p)}
-          emptyHint="Droughts, wars, plagues, harvests \u2014 how they shift prices and who suffers first." />
+          emptyHint="Droughts, wars, plagues, harvests — how they shift prices and who suffers first." />
       </div>
     </Section>
   );

@@ -26,7 +26,7 @@ function WorldSection() {
         kicker="System · Geography and place"
         title="World &"
         titleEm="Geography"
-        deck={`The continent is named ${store.projectSettings.worldName}. Everything else \u2014 cities, mountains, rivers, magical zones \u2014 is being decided.`}
+        deck={`The continent is named ${store.projectSettings.worldName}. Everything else — cities, mountains, rivers, magical zones — is being decided.`}
         code="WORLD-001"
         codeMeta={{ regions: store.worldRegions.length, map: store.projectSettings.mapStatus }}
       />
@@ -37,7 +37,7 @@ function WorldSection() {
         <div className="spread" style={{ marginBottom: 14 }}>
           <div>
             <div className="eyebrow muted">Map · primary plate</div>
-            <h3>{store.projectSettings.mapStatus === 'uploaded' ? 'Map plate uploaded' : 'Awaiting White\u2019s physical map'}</h3>
+            <h3>{store.projectSettings.mapStatus === 'uploaded' ? 'Map plate uploaded' : 'Awaiting White’s physical map'}</h3>
           </div>
           <StatusPill status={store.projectSettings.mapStatus === 'uploaded' ? 'confirmed' : 'pending'} />
         </div>
@@ -53,14 +53,14 @@ function WorldSection() {
           }}
         >
           <Icon name="globe" size={36} stroke={1.2} />
-          <div style={{ fontFamily: 'var(--mono)', fontSize: 11, letterSpacing: '0.2em', textTransform: 'uppercase' }}>Map plate \u00b7 1 of 1</div>
+          <div style={{ fontFamily: 'var(--mono)', fontSize: 11, letterSpacing: '0.2em', textTransform: 'uppercase' }}>Map plate · 1 of 1</div>
           <div style={{ fontStyle: 'italic', fontSize: 16, color: 'var(--ink)' }}>
-            Drop White\u2019s map scan here once it exists.
+            Drop White’s map scan here once it exists.
           </div>
           <div style={{ fontSize: 13, color: 'var(--ink-mute)' }}>Toggle Map Status from Settings when ready.</div>
         </div>
         <div className="divider"></div>
-        <Field label="Map notes \u2014 a scratchpad for either user">
+        <Field label="Map notes — a scratchpad for either user">
           <TextArea
             value={store.worldNotes}
             onChange={(v) => { Yw.setStore({ worldNotes: v }); }}
@@ -72,7 +72,7 @@ function WorldSection() {
 
       <SectionMark>Regions</SectionMark>
       <TableBlock
-        title="Five regions \u2014 placeholder"
+        title="Five regions — placeholder"
         columns={[
           { key: 'name', label: 'Region name', placeholder: 'Northern' },
           { key: 'climate', label: 'Climate', placeholder: 'Cold, alpine' },

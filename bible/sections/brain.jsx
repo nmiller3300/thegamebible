@@ -49,8 +49,8 @@ function BrainSection({ navigate }) {
         code="BRAIN-001"
         codeMeta={{
           status: empty ? 'empty' : 'sealed',
-          'last sealed by': store.theBrain.updatedBy || '\u2014',
-          'last sealed': store.theBrain.updatedAt ? Yb.formatStamp(store.theBrain.updatedAt) : '\u2014',
+          'last sealed by': store.theBrain.updatedBy || '—',
+          'last sealed': store.theBrain.updatedAt ? Yb.formatStamp(store.theBrain.updatedAt) : '—',
         }}
       />
 
@@ -58,7 +58,7 @@ function BrainSection({ navigate }) {
         <div className="row" style={{ gap: 10 }}>
           <StatusPill status={empty ? 'pending' : 'confirmed'} />
           <span className="muted-dark mono" style={{ fontSize: 11, letterSpacing: '0.14em' }}>
-            \u00b7 Protected · CONFIRM-gated edits only
+            · Protected · CONFIRM-gated edits only
           </span>
         </div>
         <button className="btn primary" onClick={openProtected}>
@@ -70,8 +70,8 @@ function BrainSection({ navigate }) {
         <div className="stamp">Sealed · Project Canon</div>
         <h1>The <em>Brain</em></h1>
         <div className="doc-meta">
-          {store.projectSettings.projectName} \u00b7 founding document \u00b7 v{empty ? '0' : '1'}.0
-          {store.theBrain.updatedAt ? ' \u00b7 sealed ' + Yb.formatStamp(store.theBrain.updatedAt) : ''}
+          {store.projectSettings.projectName} · founding document · v{empty ? '0' : '1'}.0
+          {store.theBrain.updatedAt ? ' · sealed ' + Yb.formatStamp(store.theBrain.updatedAt) : ''}
         </div>
 
         <BrainBlock title="What This Game Is" body={c.whatThisGameIs}
@@ -82,13 +82,13 @@ function BrainSection({ navigate }) {
         <h3>Life paths</h3>
         {(c.lifePaths || []).length === 0 ? (
           <div className="placeholder">
-            <b>Editable list \u2014 add as many life paths as the design requires</b>
-            Politics \u00b7 Crafting \u00b7 Trade \u00b7 Land \u00b7 Combat \u00b7 Stalls \u00b7 anything else. Each line gets a label and a one-sentence description.
+            <b>Editable list — add as many life paths as the design requires</b>
+            Politics · Crafting · Trade · Land · Combat · Stalls · anything else. Each line gets a label and a one-sentence description.
           </div>
         ) : (
           <ul>
             {c.lifePaths.map((p, i) => (
-              <li key={i}><b>{p.label}</b>{p.description ? ' \u2014 ' + p.description : ''}</li>
+              <li key={i}><b>{p.label}</b>{p.description ? ' — ' + p.description : ''}</li>
             ))}
           </ul>
         )}
@@ -96,7 +96,7 @@ function BrainSection({ navigate }) {
         <h2>The World</h2>
         <h3>The Empire</h3>
         <BrainBlock body={c.worldEmpire}
-          empty="Describe the dominant empire \u2014 fracturing, held together by tradition, fear, political marriages." />
+          empty="Describe the dominant empire — fracturing, held together by tradition, fear, political marriages." />
         <h3>The Ancient World</h3>
         <BrainBlock body={c.worldAncient}
           empty="The Tolkien layer. Ruins, dead languages, weight under the surface." />
@@ -134,7 +134,7 @@ function BrainSection({ navigate }) {
         <h3>Class hierarchy</h3>
         {(c.classHierarchy || []).length === 0 ? (
           <div className="placeholder">
-            <b>Ordered list \u2014 lowest to highest</b>
+            <b>Ordered list — lowest to highest</b>
             Peasants \u2192 Tradespeople \u2192 Merchants \u2192 Minor Nobles \u2192 Lords \u2192 King. Edit through the protected editor.
           </div>
         ) : (
@@ -163,7 +163,7 @@ function BrainSection({ navigate }) {
         <h2>Non-Negotiables</h2>
         {(c.nonNegotiables || []).length === 0 ? (
           <div className="placeholder">
-            <b>Numbered list \u2014 pillars that override everything else</b>
+            <b>Numbered list — pillars that override everything else</b>
             The seven pillars from the source brief. Paste in through the protected editor.
           </div>
         ) : (
@@ -223,18 +223,18 @@ function BrainEditor({ open, value, onClose }) {
     <Modal open={open} onClose={onClose} width="wide">
       <div className="modal-head">
         <div>
-          <h2>Edit \u2014 The Brain</h2>
+          <h2>Edit — The Brain</h2>
           <div className="tiny-label" style={{ marginTop: 6 }}>Sealing replaces the entire document</div>
         </div>
-        <div className="doc-code">BRAIN \u00b7 PROTECTED</div>
+        <div className="doc-code">BRAIN · PROTECTED</div>
       </div>
 
       <Field label="What This Game Is">
         <TextArea value={draft.whatThisGameIs} onChange={(v) => set('whatThisGameIs', v)} rows={4}
-          placeholder="Open world fantasy sandbox RPG. The promise: you can do anything\u2026" />
+          placeholder="Open world fantasy sandbox RPG. The promise: you can do anything…" />
       </Field>
 
-      <Field label="Core Concept \u2014 Your Story, Your Crown">
+      <Field label="Core Concept — Your Story, Your Crown">
         <TextArea value={draft.coreConcept} onChange={(v) => set('coreConcept', v)} rows={3} />
       </Field>
 
@@ -256,27 +256,27 @@ function BrainEditor({ open, value, onClose }) {
       </div>
 
       <RepeaterPairs
-        label="Tone \u00b7 Influence table"
+        label="Tone · Influence table"
         items={draft.toneTable}
         keys={['influence','take']}
         labels={['Influence','What we take from it']}
         onChange={(l) => setList('toneTable', l)}
       />
 
-      <Field label="Magic \u2014 introduction">
+      <Field label="Magic — introduction">
         <TextArea value={draft.magicIntro} onChange={(v) => set('magicIntro', v)} rows={3} />
       </Field>
       <div className="field-row">
-        <Field label="Magic \u2014 the rules">
+        <Field label="Magic — the rules">
           <TextArea value={draft.magicRules} onChange={(v) => set('magicRules', v)} rows={5} />
         </Field>
-        <Field label="Magic \u2014 why it matters for gameplay">
+        <Field label="Magic — why it matters for gameplay">
           <TextArea value={draft.magicGameplay} onChange={(v) => set('magicGameplay', v)} rows={5} />
         </Field>
       </div>
 
       <RepeaterText
-        label="Class hierarchy \u2014 lowest to highest"
+        label="Class hierarchy — lowest to highest"
         items={draft.classHierarchy}
         placeholder="Peasant"
         onChange={(l) => setList('classHierarchy', l)}
@@ -291,7 +291,7 @@ function BrainEditor({ open, value, onClose }) {
       />
 
       <RepeaterText
-        label="Non-negotiables \u2014 numbered pillars"
+        label="Non-negotiables — numbered pillars"
         items={draft.nonNegotiables}
         placeholder="Player freedom is sacred"
         onChange={(l) => setList('nonNegotiables', l)}

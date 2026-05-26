@@ -29,7 +29,7 @@ function DevLogSection() {
         kicker="Studio · Decisions of record"
         title="Dev"
         titleEm="Log"
-        deck="Every confirmed decision, name, system rule, or lore choice made during development. Once posted, entries cannot be edited \u2014 only deleted with confirmation."
+        deck="Every confirmed decision, name, system rule, or lore choice made during development. Once posted, entries cannot be edited — only deleted with confirmation."
         code="DEV-001"
         codeMeta={{ entries: store.devLog.length }}
       />
@@ -52,7 +52,7 @@ function DevLogSection() {
         <EmptyState
           icon="log"
           title="The log starts empty."
-          body="Once decisions begin landing, post them here. Each entry stamps the author and the time. Entries are immutable \u2014 if a decision changes, post a new entry rather than rewriting an old one."
+          body="Once decisions begin landing, post them here. Each entry stamps the author and the time. Entries are immutable — if a decision changes, post a new entry rather than rewriting an old one."
         />
       ) : (
         <div className="stack">

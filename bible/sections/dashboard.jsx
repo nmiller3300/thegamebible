@@ -46,7 +46,7 @@ function Dashboard({ navigate }) {
           <div className="card-head">
             <div>
               <div className="eyebrow muted">Recent activity</div>
-              <h3>What\u2019s been changing</h3>
+              <h3>What’s been changing</h3>
             </div>
             <div className="tiny-label">last 15</div>
           </div>
@@ -94,7 +94,7 @@ function Dashboard({ navigate }) {
                     <span className="author">{t.title}</span>
                     <span className="when">{Yd.relativeStamp(t.createdAt)}</span>
                   </div>
-                  <div className="body" style={{ fontSize: 14 }}>{t.content.slice(0, 140)}{t.content.length > 140 ? '\u2026' : ''}</div>
+                  <div className="body" style={{ fontSize: 14 }}>{t.content.slice(0, 140)}{t.content.length > 140 ? '…' : ''}</div>
                   <div style={{ marginTop: 8 }}><span className="tag-badge">{t.sectionTag}</span></div>
                 </div>
               ))
@@ -105,7 +105,7 @@ function Dashboard({ navigate }) {
             <div className="card-head">
               <div>
                 <div className="eyebrow muted">Map status</div>
-                <h3>{store.projectSettings.mapStatus === 'uploaded' ? 'Map uploaded' : 'Awaiting White\u2019s map'}</h3>
+                <h3>{store.projectSettings.mapStatus === 'uploaded' ? 'Map uploaded' : 'Awaiting White’s map'}</h3>
               </div>
               <StatusPill status={store.projectSettings.mapStatus === 'uploaded' ? 'confirmed' : 'pending'} />
             </div>

@@ -99,7 +99,7 @@ function FactionsSection() {
                       <StatusPill status={t.status || 'confirmed'} />
                     </div>
                     <div className="meta-row">
-                      <div className="k">Parties</div><div className="v">{t.parties || '\u2014'}</div>
+                      <div className="k">Parties</div><div className="v">{t.parties || '—'}</div>
                     </div>
                     {t.summary && <Field2 label="Summary" body={t.summary} />}
                     <div className="spread" style={{ marginTop: 14, paddingTop: 12, borderTop: '1px dashed var(--rule)' }}>
@@ -152,23 +152,23 @@ function FactionCard({ f, onEdit, onDelete }) {
     <article className={'paper-card' + (f.status === 'pending' ? ' tbd' : '')}>
       <div className="card-head">
         <div>
-          <div className="eyebrow muted">{f.factionType || 'Faction'}{f.region ? ' \u00b7 ' + f.region : ''}</div>
+          <div className="eyebrow muted">{f.factionType || 'Faction'}{f.region ? ' · ' + f.region : ''}</div>
           <h3>{f.name || 'Unnamed faction'}</h3>
         </div>
         <StatusPill status={f.status || 'confirmed'} />
       </div>
       <div className="meta-row">
-        <div className="k">Leader</div>   <div className={'v ' + (f.leader ? '' : 'empty')}>{f.leader || '\u2014'}</div>
-        <div className="k">Capital</div>  <div className={'v ' + (f.capital ? '' : 'empty')}>{f.capital || '\u2014'}</div>
-        <div className="k">Military</div> <div className={'v ' + (f.militaryStrength ? '' : 'empty')}>{f.militaryStrength || '\u2014'}</div>
-        <div className="k">Reputation</div><div className={'v ' + (f.reputation ? '' : 'empty')}>{f.reputation || '\u2014'}</div>
+        <div className="k">Leader</div>   <div className={'v ' + (f.leader ? '' : 'empty')}>{f.leader || '—'}</div>
+        <div className="k">Capital</div>  <div className={'v ' + (f.capital ? '' : 'empty')}>{f.capital || '—'}</div>
+        <div className="k">Military</div> <div className={'v ' + (f.militaryStrength ? '' : 'empty')}>{f.militaryStrength || '—'}</div>
+        <div className="k">Reputation</div><div className={'v ' + (f.reputation ? '' : 'empty')}>{f.reputation || '—'}</div>
       </div>
       {f.allies   && <Field2 label="Allies" body={f.allies} />}
       {f.enemies  && <Field2 label="Enemies" body={f.enemies} />}
       {f.economy  && <Field2 label="Economy" body={f.economy} />}
       {f.hiddenAgenda && (
         <div style={{ marginTop: 8, padding: '10px 12px', background: 'oklch(0.45 0.135 27 / 0.07)', borderLeft: '2px solid var(--imperial)' }}>
-          <div className="tiny-label" style={{ color: 'var(--imperial)' }}>Hidden agenda \u00b7 internal</div>
+          <div className="tiny-label" style={{ color: 'var(--imperial)' }}>Hidden agenda · internal</div>
           <p style={{ fontSize: 14.5, margin: '4px 0 0', color: 'var(--ink)' }}>{f.hiddenAgenda}</p>
         </div>
       )}
@@ -197,7 +197,7 @@ function FactionForm({ open, entry, initial, onClose, onSave }) {
   return (
     <Modal open={open} onClose={onClose} width="wide">
       <div className="modal-head">
-        <div><h2>{entry ? 'Edit faction' : 'Add a faction'}</h2><div className="tiny-label" style={{ marginTop:6 }}>Factions \u00b7 entry</div></div>
+        <div><h2>{entry ? 'Edit faction' : 'Add a faction'}</h2><div className="tiny-label" style={{ marginTop:6 }}>Factions · entry</div></div>
         <div className="doc-code">FACT-001 · ENTRY</div>
       </div>
       <div className="field-row">
@@ -210,7 +210,7 @@ function FactionForm({ open, entry, initial, onClose, onSave }) {
         <Field label="Region"><TextInput value={d.region} onChange={(v) => set('region', v)} /></Field>
       </div>
       <div className="field-row">
-        <Field label="Military strength"><Select value={d.militaryStrength} onChange={(v) => set('militaryStrength', v)} options={['', ...MILITARY_STRENGTH]} placeholder="\u2014" /></Field>
+        <Field label="Military strength"><Select value={d.militaryStrength} onChange={(v) => set('militaryStrength', v)} options={['', ...MILITARY_STRENGTH]} placeholder="—" /></Field>
         <Field label="Reputation"><TextInput value={d.reputation} onChange={(v) => set('reputation', v)} placeholder="Feared in the heartlands, distrusted on the coast" /></Field>
       </div>
       <Field label="Allies"><TextArea value={d.allies} onChange={(v) => set('allies', v)} rows={2} /></Field>
@@ -240,7 +240,7 @@ function TensionForm({ open, entry, onClose, onSave }) {
         <div className="doc-code">FACT-001 · TENSION</div>
       </div>
       <Field label="Headline"><TextInput value={d.title} onChange={(v) => set('title', v)} placeholder="The salt road levy" /></Field>
-      <Field label="Parties"><TextInput value={d.parties} onChange={(v) => set('parties', v)} placeholder="House Velmar \u00b7 Coastal Free Cities" /></Field>
+      <Field label="Parties"><TextInput value={d.parties} onChange={(v) => set('parties', v)} placeholder="House Velmar · Coastal Free Cities" /></Field>
       <Field label="Summary"><TextArea value={d.summary} onChange={(v) => set('summary', v)} rows={5} placeholder="What is happening, who pushes, where it can tip." /></Field>
       <div className="modal-actions">
         <ConfirmedToggle value={d.status === 'confirmed'} onChange={(b) => set('status', b ? 'confirmed' : 'pending')} />

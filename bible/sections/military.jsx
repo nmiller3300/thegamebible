@@ -33,20 +33,20 @@ function MilitarySection() {
         onChange={setStructure}
         isConfirmed={store.militaryStructure.some((r) => r.isConfirmed)}
         onStatusChange={(v) => setStructure(store.militaryStructure.map((r) => ({ ...r, isConfirmed: v })))}
-        emptyHint="From foot soldier to general \u2014 who commands what, and how many."
+        emptyHint="From foot soldier to general — who commands what, and how many."
       />
 
       <SectionMark>Conflict</SectionMark>
       <div style={{ display: 'grid', gap: 18, gridTemplateColumns: 'repeat(auto-fit, minmax(400px, 1fr))' }}>
         <ProseBlock
-          title="Starting a war \u2014 player triggers"
+          title="Starting a war — player triggers"
           body={b.startingWar.content}
           isConfirmed={b.startingWar.isConfirmed}
           onChange={(p) => patch('startingWar', p)}
           emptyHint="Assassination, seizing territory, rallying a faction, breaking a treaty, economic sabotage."
         />
         <ProseBlock
-          title="Joining a war \u2014 player options"
+          title="Joining a war — player options"
           body={b.joiningWar.content}
           isConfirmed={b.joiningWar.isConfirmed}
           onChange={(p) => patch('joiningWar', p)}

@@ -53,7 +53,7 @@ function BestiarySection() {
         kicker="Index · Fauna and Enemies"
         title="The"
         titleEm="Bestiary"
-        deck="Every creature, enemy, and playable species in the world of Eravan. Empty on first load \u2014 you fill it in entry by entry."
+        deck="Every creature, enemy, and playable species in the world of Eravan. Empty on first load — you fill it in entry by entry."
         code="BEST-001"
         codeMeta={{
           species: speciesCount,
@@ -153,9 +153,9 @@ function SpeciesGrid({ store, onEdit, onDelete, onAdd }) {
             {s.description ? <p>{s.description}</p> : <p className="muted italic">No description yet.</p>}
             <div className="meta-row">
               <div className="k">Traits</div>
-              <div className={'v ' + (s.traits ? '' : 'empty')}>{s.traits || '\u2014'}</div>
+              <div className={'v ' + (s.traits ? '' : 'empty')}>{s.traits || '—'}</div>
               <div className="k">Social standing</div>
-              <div className={'v ' + (s.socialStatus ? '' : 'empty')}>{s.socialStatus || '\u2014'}</div>
+              <div className={'v ' + (s.socialStatus ? '' : 'empty')}>{s.socialStatus || '—'}</div>
             </div>
             {s.notes ? <p style={{ fontSize: 14.5, color: 'var(--ink-mute)', fontStyle: 'italic' }}>{s.notes}</p> : null}
             <div className="spread" style={{ marginTop: 14, paddingTop: 12, borderTop: '1px dashed var(--rule)' }}>
@@ -184,7 +184,7 @@ function SpeciesForm({ open, entry, onClose, onSave }) {
       <div className="modal-head">
         <div>
           <h2>{entry ? 'Edit species' : 'Add a playable species'}</h2>
-          <div className="tiny-label" style={{ marginTop: 6 }}>Bestiary \u00b7 species</div>
+          <div className="tiny-label" style={{ marginTop: 6 }}>Bestiary · species</div>
         </div>
         <div className="doc-code">BEST-001 · SPECIES</div>
       </div>
@@ -252,7 +252,7 @@ function CreatureIndex({ store, onEdit, onDelete, onAdd }) {
         <EmptyState
           icon="book"
           title="No creatures recorded yet."
-          body="The brief confirms a long roster across Wild Fauna, Ancient Creatures, Magic-Affected, Humanoid Enemies, and Legendary. Add them one at a time \u2014 each entry supports anatomy, habitat, intelligence, threat, lore, and an optional image placeholder for the concept reference."
+          body="The brief confirms a long roster across Wild Fauna, Ancient Creatures, Magic-Affected, Humanoid Enemies, and Legendary. Add them one at a time — each entry supports anatomy, habitat, intelligence, threat, lore, and an optional image placeholder for the concept reference."
           action={<button className="btn on-paper primary" onClick={onAdd}><Icon name="plus" size={12}/> Add the first creature</button>}
         />
       </>
@@ -280,7 +280,7 @@ function CreatureIndex({ store, onEdit, onDelete, onAdd }) {
         <Field label="" >
           <input
             type="text"
-            placeholder="Search by name\u2026"
+            placeholder="Search by name…"
             value={query}
             onChange={(e) => setQuery(e.target.value)}
             style={{ background: 'oklch(0.20 0.014 60)', border: '1px solid var(--rule-dark)', color: 'var(--paper)', padding: '7px 10px', borderRadius: 2, fontFamily: 'var(--mono)', fontSize: 12, width: 220 }}
@@ -320,10 +320,10 @@ function CreatureCard({ creature, onEdit, onDelete }) {
         </div>
       ) : null}
       <div className="meta-row">
-        <div className="k">Type</div>            <div className={'v ' + (c.type ? '' : 'empty')}>{c.type || '\u2014'}</div>
-        <div className="k">Habitat</div>         <div className={'v ' + (c.habitat ? '' : 'empty')}>{c.habitat || '\u2014'}</div>
-        <div className="k">Intelligence</div>    <div className={'v ' + (c.intelligence ? '' : 'empty')}>{c.intelligence || '\u2014'}</div>
-        <div className="k">Threat</div>          <div className={'v ' + (c.threatLevel ? '' : 'empty')}>{c.threatLevel || '\u2014'}</div>
+        <div className="k">Type</div>            <div className={'v ' + (c.type ? '' : 'empty')}>{c.type || '—'}</div>
+        <div className="k">Habitat</div>         <div className={'v ' + (c.habitat ? '' : 'empty')}>{c.habitat || '—'}</div>
+        <div className="k">Intelligence</div>    <div className={'v ' + (c.intelligence ? '' : 'empty')}>{c.intelligence || '—'}</div>
+        <div className="k">Threat</div>          <div className={'v ' + (c.threatLevel ? '' : 'empty')}>{c.threatLevel || '—'}</div>
       </div>
       {c.appearance && <Field2 label="Appearance" body={c.appearance} />}
       {c.lore       && <Field2 label="Lore"       body={c.lore} />}
@@ -369,7 +369,7 @@ function CreatureForm({ open, entry, categories, onClose, onSave }) {
       <div className="modal-head">
         <div>
           <h2>{entry ? 'Edit creature' : 'Add a creature'}</h2>
-          <div className="tiny-label" style={{ marginTop: 6 }}>Bestiary \u00b7 creature index</div>
+          <div className="tiny-label" style={{ marginTop: 6 }}>Bestiary · creature index</div>
         </div>
         <div className="doc-code">BEST-001 · CREATURE</div>
       </div>
@@ -379,9 +379,9 @@ function CreatureForm({ open, entry, categories, onClose, onSave }) {
         <Field label="Category"><Select value={d.category} onChange={(v) => set('category', v)} options={categories} /></Field>
       </div>
       <div className="field-row three">
-        <Field label="Type"><Select value={d.type} onChange={(v) => set('type', v)} options={['', ...CREATURE_TYPES]} placeholder="\u2014" /></Field>
-        <Field label="Intelligence"><Select value={d.intelligence} onChange={(v) => set('intelligence', v)} options={['', ...INTELLIGENCE]} placeholder="\u2014" /></Field>
-        <Field label="Threat level"><Select value={d.threatLevel} onChange={(v) => set('threatLevel', v)} options={['', ...THREAT]} placeholder="\u2014" /></Field>
+        <Field label="Type"><Select value={d.type} onChange={(v) => set('type', v)} options={['', ...CREATURE_TYPES]} placeholder="—" /></Field>
+        <Field label="Intelligence"><Select value={d.intelligence} onChange={(v) => set('intelligence', v)} options={['', ...INTELLIGENCE]} placeholder="—" /></Field>
+        <Field label="Threat level"><Select value={d.threatLevel} onChange={(v) => set('threatLevel', v)} options={['', ...THREAT]} placeholder="—" /></Field>
       </div>
       <Field label="Habitat"><TextInput value={d.habitat} onChange={(v) => set('habitat', v)} placeholder="Forests and open plains of the imperial heartlands" /></Field>
       <Field label="Appearance"><TextArea value={d.appearance} onChange={(v) => set('appearance', v)} rows={3} /></Field>
@@ -390,7 +390,7 @@ function CreatureForm({ open, entry, categories, onClose, onSave }) {
       <Field label="Connection to magic"><TextArea value={d.magicConnection} onChange={(v) => set('magicConnection', v)} rows={2}
         placeholder="None / Ascended-linked / Veilborn-affected / unknown" /></Field>
       <Field label="Image placeholder label" hint="A short caption indicating what concept art belongs here. Optional. Leaves a designed empty slot when set.">
-        <TextInput value={d.imagePlaceholderLabel} onChange={(v) => set('imagePlaceholderLabel', v)} placeholder="Side profile \u2014 neutral stance" />
+        <TextInput value={d.imagePlaceholderLabel} onChange={(v) => set('imagePlaceholderLabel', v)} placeholder="Side profile — neutral stance" />
       </Field>
 
       <ModelFileSlot
@@ -433,7 +433,7 @@ function CategoriesModal({ open, onClose }) {
       <div className="modal-head">
         <div>
           <h2>Manage categories</h2>
-          <div className="tiny-label" style={{ marginTop: 6 }}>Bestiary \u00b7 categories</div>
+          <div className="tiny-label" style={{ marginTop: 6 }}>Bestiary · categories</div>
         </div>
         <div className="doc-code">BEST-001 · CATS</div>
       </div>
@@ -518,7 +518,7 @@ function ModelFileSlot({ meta, onUploaded, onCleared }) {
               {meta.fileName}
             </div>
             <div className="attrib" style={{ marginTop: 3 }}>
-              <span>uploaded</span><b>{meta.uploadedBy || '\u2014'}</b>
+              <span>uploaded</span><b>{meta.uploadedBy || '—'}</b>
               <span className="sep">·</span>
               <span>{Ybe.formatStamp(meta.uploadedAt)}</span>
               <span className="sep">·</span>
@@ -542,7 +542,7 @@ function ModelFileSlot({ meta, onUploaded, onCleared }) {
 
   return (
     <div className="field">
-      <label>3D model file <span className="muted italic" style={{ textTransform: 'none', letterSpacing: 0, fontFamily: 'var(--serif)', fontStyle: 'italic', marginLeft: 8 }}>\u2014 optional, for White's download</span></label>
+      <label>3D model file <span className="muted italic" style={{ textTransform: 'none', letterSpacing: 0, fontFamily: 'var(--serif)', fontStyle: 'italic', marginLeft: 8 }}>— optional, for White's download</span></label>
       <div
         onClick={() => inputRef.current && inputRef.current.click()}
         onDragOver={(e) => { e.preventDefault(); setOver(true); }}
@@ -561,7 +561,7 @@ function ModelFileSlot({ meta, onUploaded, onCleared }) {
       >
         <div style={{ marginBottom: 6 }}><Icon name="drag" size={20} /></div>
         <div style={{ fontFamily: 'var(--serif)', fontStyle: 'italic', fontSize: 16, color: 'var(--ink)' }}>
-          {busy ? 'Storing\u2026' : 'Drop a 3D model file or click to browse'}
+          {busy ? 'Storing…' : 'Drop a 3D model file or click to browse'}
         </div>
         <div style={{ fontFamily: 'var(--mono)', fontSize: 10.5, letterSpacing: '0.18em', textTransform: 'uppercase', marginTop: 6 }}>
           FBX · GLB · OBJ · BLEND

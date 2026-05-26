@@ -95,7 +95,7 @@ function SettingsSection({ navigate }) {
           <div className="card-head">
             <div>
               <div className="eyebrow muted">Map status</div>
-              <h3>{store.projectSettings.mapStatus === 'uploaded' ? 'Uploaded' : 'Pending White\u2019s map'}</h3>
+              <h3>{store.projectSettings.mapStatus === 'uploaded' ? 'Uploaded' : 'Pending White’s map'}</h3>
             </div>
             <StatusPill status={store.projectSettings.mapStatus === 'uploaded' ? 'confirmed' : 'pending'} />
           </div>

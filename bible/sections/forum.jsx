@@ -84,7 +84,7 @@ function ForumSection({ route, navigate }) {
           <button className="btn ghost small" onClick={() => navigate('forum')}><Icon name="chevron" size={11} style={{ transform: 'rotate(180deg)' }}/> Back to threads</button>
         </div>
         <DocHead
-          kicker={'Forum thread \u00b7 ' + thread.sectionTag}
+          kicker={'Forum thread · ' + thread.sectionTag}
           title={thread.title}
           deck=""
           code="FORUM-001"
@@ -195,9 +195,9 @@ function ForumSection({ route, navigate }) {
                   </div>
                   <span className="tag-badge">{t.sectionTag}</span>
                 </div>
-                <p className="preview">{t.content.slice(0, 200)}{t.content.length > 200 ? '\u2026' : ''}</p>
+                <p className="preview">{t.content.slice(0, 200)}{t.content.length > 200 ? '…' : ''}</p>
                 <div className="meta">
-                  <span><b style={{ color: 'var(--ink-2)' }}>{t.authorDisplayName}</b> \u00b7 opened {Yfo.relativeStamp(t.createdAt)}</span>
+                  <span><b style={{ color: 'var(--ink-2)' }}>{t.authorDisplayName}</b> · opened {Yfo.relativeStamp(t.createdAt)}</span>
                   <span>{replies} {replies === 1 ? 'reply' : 'replies'}</span>
                   <StatusPill status={t.status} />
                 </div>
@@ -217,7 +217,7 @@ function ThreadComposer({ onCancel, onSave }) {
   return (
     <Modal open={true} onClose={onCancel} width="wide">
       <div className="modal-head">
-        <div><h2>Open a new thread</h2><div className="tiny-label" style={{ marginTop:6 }}>Forum \u00b7 thread</div></div>
+        <div><h2>Open a new thread</h2><div className="tiny-label" style={{ marginTop:6 }}>Forum · thread</div></div>
         <div className="doc-code">FORUM-001 · NEW</div>
       </div>
       <Field label="Title"><TextInput value={d.title} onChange={(v) => setD({ ...d, title: v })} placeholder="What to call the wolf in the Iron Hills" /></Field>
@@ -241,7 +241,7 @@ function ReplyComposer({ onPost }) {
     <article className="paper-card">
       <div className="eyebrow muted">Reply</div>
       <Field label={'As ' + Yfo.currentDisplayName()}>
-        <TextArea value={v} onChange={setV} rows={3} placeholder="\u2026" />
+        <TextArea value={v} onChange={setV} rows={3} placeholder="…" />
       </Field>
       <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
         <button className="btn on-paper primary" onClick={send} disabled={!v.trim()}><Icon name="plus" size={11}/> Post reply</button>
