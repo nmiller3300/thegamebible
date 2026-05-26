@@ -1,645 +1,670 @@
 /* Game Bible — sections/bestiary.jsx
- * Two sub-sections: playable species + creature index.
- * Establishes the View/Edit/Add card-based pattern used by Characters,
- * Factions, and Artifacts.
+ * Full dossier view per creature, matching Crowned Stag Dossier aesthetic.
  */
 const Ybe = window.YSTC;
 
 const CREATURE_TYPES = ['Beast','Undead','Construct','Unknown','Human','Magical','Other'];
-const INTELLIGENCE = ['Animal','Semi-intelligent','Fully intelligent','Unknown'];
-const THREAT = ['Harmless','Low','Medium','High','Legendary','Unknown'];
+const INTELLIGENCE   = ['Animal','Semi-intelligent','Fully intelligent','Unknown'];
+const THREAT         = ['Harmless','Low','Medium','High','Legendary','Unknown'];
+const THREAT_COLOR   = { Harmless:'var(--moss)', Low:'var(--moss)', Medium:'oklch(0.65 0.14 75)', High:'var(--imperial-soft)', Legendary:'oklch(0.55 0.18 30)', Unknown:'var(--ash)' };
 
-function BestiarySection() {
-  const store = Ybe.useStore();
-  const [tab, setTab] = useState('creatures');
-  const [editing, setEditing] = useState(null);     // {kind: 'species'|'creature', entry}
-  const [deleting, setDeleting] = useState(null);   // {collection, entry}
-  const [managingCats, setManagingCats] = useState(false);
+const PIPELINE_STEPS = [
+  { id:'p1', num:'01', label:'Concept plates',  desc:'Reference images uploaded and approved.' },
+  { id:'p2', num:'02', label:'Meshy intake',     desc:'Image-to-3D submitted. Base mesh generated.' },
+  { id:'p3', num:'03', label:'Retopo & rig',     desc:'Mesh cleanup, skeleton, weight painting.' },
+  { id:'p4', num:'04', label:'Texturing',        desc:'Albedo, roughness, normal map, AO baked.' },
+  { id:'p5', num:'05', label:'LODs',             desc:'Four LOD variants built for the engine.' },
+  { id:'p6', num:'06', label:'Engine review',    desc:'In-engine animation states and final sign-off.' },
+];
 
-  function openAdd(kind)    { setEditing({ kind, entry: null }); }
-  function openEdit(kind, entry) { setEditing({ kind, entry }); }
-  function saveEntry(data) {
-    const { kind, entry } = editing;
-    const collection = kind === 'species' ? 'bestiarySpecies' : 'bestiaryEntries';
-    if (entry) {
-      Ybe.updateEntry(collection, entry.id, data);
-      Ybe.logActivity('Bestiary', 'edited', data.name);
-    } else {
-      const saved = Ybe.addEntry(collection, data);
-      Ybe.logActivity('Bestiary', 'added', saved.name);
-    }
-    setEditing(null);
-  }
-  function askDelete(kind, entry) {
-    setDeleting({ collection: kind === 'species' ? 'bestiarySpecies' : 'bestiaryEntries', entry });
-  }
-  function confirmDelete() {
-    // Clean up any attached 3D file blob before removing the entry
-    const e = deleting.entry;
-    if (e && e.modelFile && e.modelFile.id) {
-      window.YSTC_FILES.deleteBlob(e.modelFile.id).catch(() => {});
-    }
-    Ybe.deleteEntry(deleting.collection, deleting.entry.id);
-    Ybe.logActivity('Bestiary', 'removed', deleting.entry.name);
-    setDeleting(null);
-  }
+function getMeta(e) { return (e && e.metadata) ? (typeof e.metadata === 'string' ? JSON.parse(e.metadata) : e.metadata) : {}; }
 
-  const speciesCount  = store.bestiarySpecies.length;
-  const creatureCount = store.bestiaryEntries.length;
+// ── Creature card for list view ───────────────────────────────────────────
+function CreatureCard({ entry, onClick, onEdit, onDelete }) {
+  const meta = getMeta(entry);
+  const mainImg = meta.imgMain || entry.imageUrl || '';
+  const threatColor = THREAT_COLOR[entry.threatLevel] || 'var(--ash)';
 
   return (
-    <Section>
-      <DocHead
-        kicker="Index · Fauna and Enemies"
-        title="The"
-        titleEm="Bestiary"
-        deck="Every creature, enemy, and playable species in the world of Eravan. Empty on first load — you fill it in entry by entry."
-        code="BEST-001"
-        codeMeta={{
-          species: speciesCount,
-          creatures: creatureCount,
-          categories: store.bestiaryCategories.length,
-        }}
-      />
-
-      <div className="spread" style={{ marginBottom: 18 }}>
-        <nav className="tabs" role="tablist" style={{ flex: 1 }}>
-          <button role="tab" aria-selected={tab==='creatures'} onClick={() => setTab('creatures')}>
-            <span className="num">01</span>Creature Index
-          </button>
-          <button role="tab" aria-selected={tab==='species'} onClick={() => setTab('species')}>
-            <span className="num">02</span>Playable Species
-          </button>
-        </nav>
-        <div className="row">
-          {tab === 'creatures' && (
-            <button className="btn ghost small" onClick={() => setManagingCats(true)}>
-              <Icon name="drag" size={11}/> Manage categories
-            </button>
+    <div className="creature-card" onClick={onClick} title="Open dossier">
+      <div className="creature-card-image">
+        {mainImg
+          ? <img src={mainImg} alt={entry.name} />
+          : (
+            <div className="creature-card-placeholder">
+              <Icon name="shield" size={28} stroke={1.2} />
+              <div>Concept plate pending</div>
+            </div>
           )}
-          <button className="btn primary" onClick={() => openAdd(tab === 'species' ? 'species' : 'creature')}>
-            <Icon name="plus" size={13}/> {tab === 'species' ? 'Add species' : 'Add creature'}
-          </button>
+        <div className="creature-card-threat" style={{ background: threatColor + '22', color: threatColor, borderColor: threatColor + '55' }}>
+          {entry.threatLevel || '—'}
         </div>
       </div>
-
-      {tab === 'species'
-        ? <SpeciesGrid store={store} onEdit={(e) => openEdit('species', e)} onDelete={(e) => askDelete('species', e)} onAdd={() => openAdd('species')} />
-        : <CreatureIndex store={store} onEdit={(e) => openEdit('creature', e)} onDelete={(e) => askDelete('creature', e)} onAdd={() => openAdd('creature')} />}
-
-      {editing && editing.kind === 'creature' && (
-        <CreatureForm
-          open={true}
-          entry={editing.entry}
-          categories={store.bestiaryCategories}
-          onClose={() => setEditing(null)}
-          onSave={saveEntry}
-        />
-      )}
-      {editing && editing.kind === 'species' && (
-        <SpeciesForm
-          open={true}
-          entry={editing.entry}
-          onClose={() => setEditing(null)}
-          onSave={saveEntry}
-        />
-      )}
-
-      <ConfirmDialog
-        open={!!deleting}
-        title="Delete this entry?"
-        body={deleting ? `\u201C${deleting.entry.name}\u201D will be removed from the Bestiary. This cannot be undone.` : ''}
-        onCancel={() => setDeleting(null)}
-        onConfirm={confirmDelete}
-      />
-
-      <CategoriesModal
-        open={managingCats}
-        onClose={() => setManagingCats(false)}
-      />
-    </Section>
-  );
-}
-
-// ── Species (sub-section) ────────────────────────────────────────────────
-function SpeciesGrid({ store, onEdit, onDelete, onAdd }) {
-  const species = store.bestiarySpecies;
-  if (species.length === 0) {
-    return (
-      <>
-        <SectionMark>Playable species</SectionMark>
-        <EmptyState
-          icon="book"
-          title="No playable species recorded."
-          body="The brief confirms Human as the first playable species. Add it (and any others as confirmed) to populate this index. Each entry supports name, description, traits, social status, and notes."
-          action={<button className="btn on-paper primary" onClick={onAdd}><Icon name="plus" size={12}/> Add the first species</button>}
-        />
-      </>
-    );
-  }
-  return (
-    <>
-      <SectionMark>Playable species</SectionMark>
-      <div style={{ display: 'grid', gap: 16, gridTemplateColumns: 'repeat(auto-fill, minmax(360px, 1fr))' }}>
-        {species.map((s) => (
-          <article key={s.id} className={'paper-card' + (s.status === 'pending' ? ' tbd' : '')}>
-            <div className="card-head">
-              <div>
-                <div className="eyebrow muted">Playable species</div>
-                <h3>{s.name || 'Unnamed species'}</h3>
-              </div>
-              <StatusPill status={s.status || 'confirmed'} />
-            </div>
-            {s.description ? <p>{s.description}</p> : <p className="muted italic">No description yet.</p>}
-            <div className="meta-row">
-              <div className="k">Traits</div>
-              <div className={'v ' + (s.traits ? '' : 'empty')}>{s.traits || '—'}</div>
-              <div className="k">Social standing</div>
-              <div className={'v ' + (s.socialStatus ? '' : 'empty')}>{s.socialStatus || '—'}</div>
-            </div>
-            {s.notes ? <p style={{ fontSize: 14.5, color: 'var(--ink-mute)', fontStyle: 'italic' }}>{s.notes}</p> : null}
-            <div className="spread" style={{ marginTop: 14, paddingTop: 12, borderTop: '1px dashed var(--rule)' }}>
-              <Attrib entry={s} />
-              <div className="row">
-                <button className="btn small on-paper" onClick={() => onEdit(s)}><Icon name="pencil" size={11}/> Edit</button>
-                <button className="btn small on-paper danger" onClick={() => onDelete(s)}><Icon name="trash" size={11}/> Delete</button>
-              </div>
-            </div>
-          </article>
-        ))}
-      </div>
-    </>
-  );
-}
-
-function SpeciesForm({ open, entry, onClose, onSave }) {
-  const [d, setD] = useState({
-    name: '', description: '', traits: '', socialStatus: '', notes: '',
-    status: 'confirmed', ...(entry || {}),
-  });
-  useEffect(() => { setD({ name:'', description:'', traits:'', socialStatus:'', notes:'', status:'confirmed', ...(entry || {}) }); }, [entry, open]);
-
-  return (
-    <Modal open={open} onClose={onClose}>
-      <div className="modal-head">
-        <div>
-          <h2>{entry ? 'Edit species' : 'Add a playable species'}</h2>
-          <div className="tiny-label" style={{ marginTop: 6 }}>Bestiary · species</div>
+      <div className="creature-card-body">
+        <div className="creature-card-category">{entry.category || 'Uncategorised'}</div>
+        <h3 className="creature-card-name">{entry.name || 'Unnamed'}</h3>
+        <div className="creature-card-meta">
+          <span>{entry.entryType || entry.type || '—'}</span>
+          <span style={{ opacity: 0.4 }}>·</span>
+          <span>{entry.intelligence || '—'}</span>
         </div>
-        <div className="doc-code">BEST-001 · SPECIES</div>
+        {entry.appearance && (
+          <p className="creature-card-excerpt">{entry.appearance.slice(0, 100)}{entry.appearance.length > 100 ? '…' : ''}</p>
+        )}
       </div>
-
-      <Field label="Species name">
-        <TextInput value={d.name} onChange={(v) => setD({ ...d, name: v })} placeholder="e.g. Human" />
-      </Field>
-      <Field label="Description">
-        <TextArea value={d.description} onChange={(v) => setD({ ...d, description: v })} rows={3}
-          placeholder="A short paragraph in the world's voice." />
-      </Field>
-      <div className="field-row">
-        <Field label="Traits">
-          <TextInput value={d.traits} onChange={(v) => setD({ ...d, traits: v })} placeholder="Adaptable. Politically dominant." />
-        </Field>
-        <Field label="Social standing in most kingdoms">
-          <TextInput value={d.socialStatus} onChange={(v) => setD({ ...d, socialStatus: v })} placeholder="Access to all social classes." />
-        </Field>
+      <div className="creature-card-actions" onClick={(e) => e.stopPropagation()}>
+        <button className="btn small on-paper" onClick={onEdit}><Icon name="pencil" size={10}/></button>
+        <button className="btn small on-paper danger" onClick={onDelete}><Icon name="trash" size={10}/></button>
       </div>
-      <Field label="Notes">
-        <TextArea value={d.notes} onChange={(v) => setD({ ...d, notes: v })} rows={2} placeholder="Caveats, internal references, TBD threads." />
-      </Field>
-
-      <div className="modal-actions">
-        <ConfirmedToggle value={d.status === 'confirmed'} onChange={(b) => setD({ ...d, status: b ? 'confirmed' : 'pending' })} />
-        <div className="right">
-          <button className="btn on-paper ghost" onClick={onClose}>Cancel</button>
-          <button className="btn on-paper primary" disabled={!d.name.trim()} onClick={() => onSave(d)}>
-            {entry ? 'Save changes' : 'Add species'}
-          </button>
-        </div>
-      </div>
-    </Modal>
-  );
-}
-
-// ── Creature Index (sub-section) ─────────────────────────────────────────
-function CreatureIndex({ store, onEdit, onDelete, onAdd }) {
-  const creatures = store.bestiaryEntries;
-  const [filterCat, setFilterCat] = useState('All');
-  const [query, setQuery] = useState('');
-
-  const visible = useMemo(() => {
-    return creatures.filter((c) => {
-      if (filterCat !== 'All' && c.category !== filterCat) return false;
-      if (query && !(c.name || '').toLowerCase().includes(query.toLowerCase())) return false;
-      return true;
-    });
-  }, [creatures, filterCat, query]);
-
-  const grouped = useMemo(() => {
-    const g = {};
-    for (const cat of store.bestiaryCategories) g[cat] = [];
-    for (const c of visible) {
-      if (!g[c.category]) g[c.category] = [];
-      g[c.category].push(c);
-    }
-    return g;
-  }, [visible, store.bestiaryCategories]);
-
-  if (creatures.length === 0) {
-    return (
-      <>
-        <SectionMark>Creature index</SectionMark>
-        <EmptyState
-          icon="book"
-          title="No creatures recorded yet."
-          body="The brief confirms a long roster across Wild Fauna, Ancient Creatures, Magic-Affected, Humanoid Enemies, and Legendary. Add them one at a time — each entry supports anatomy, habitat, intelligence, threat, lore, and an optional image placeholder for the concept reference."
-          action={<button className="btn on-paper primary" onClick={onAdd}><Icon name="plus" size={12}/> Add the first creature</button>}
-        />
-      </>
-    );
-  }
-
-  return (
-    <>
-      <div className="row wrap" style={{ marginTop: 4, marginBottom: 18, gap: 6 }}>
-        <button
-          className={'btn small ' + (filterCat === 'All' ? 'primary' : 'ghost')}
-          onClick={() => setFilterCat('All')}
-        >All <span style={{ opacity: 0.6, marginLeft: 6 }}>{creatures.length}</span></button>
-        {store.bestiaryCategories.map((cat) => {
-          const n = creatures.filter((c) => c.category === cat).length;
-          return (
-            <button
-              key={cat}
-              className={'btn small ' + (filterCat === cat ? 'primary' : 'ghost')}
-              onClick={() => setFilterCat(cat)}
-            >{cat} <span style={{ opacity: 0.6, marginLeft: 6 }}>{n}</span></button>
-          );
-        })}
-        <span className="spacer" style={{ flex: 1 }}></span>
-        <Field label="" >
-          <input
-            type="text"
-            placeholder="Search by name…"
-            value={query}
-            onChange={(e) => setQuery(e.target.value)}
-            style={{ background: 'oklch(0.20 0.014 60)', border: '1px solid var(--rule-dark)', color: 'var(--paper)', padding: '7px 10px', borderRadius: 2, fontFamily: 'var(--mono)', fontSize: 12, width: 220 }}
-          />
-        </Field>
-      </div>
-
-      {Object.entries(grouped).map(([cat, list]) => list.length === 0 ? null : (
-        <div key={cat}>
-          <SectionMark>{cat} <span style={{ color: 'var(--ash)', marginLeft: 8 }}>· {list.length}</span></SectionMark>
-          <div style={{ display: 'grid', gap: 16, gridTemplateColumns: 'repeat(auto-fill, minmax(360px, 1fr))' }}>
-            {list.map((c) => <CreatureCard key={c.id} creature={c} onEdit={() => onEdit(c)} onDelete={() => onDelete(c)} />)}
-          </div>
-        </div>
-      ))}
-    </>
-  );
-}
-
-function CreatureCard({ creature, onEdit, onDelete }) {
-  const c = creature;
-  return (
-    <article className={'paper-card' + (c.status === 'pending' ? ' tbd' : '')}>
-      <div className="card-head">
-        <div>
-          <div className="eyebrow muted">{c.category || 'Uncategorised'}</div>
-          <h3>{c.name || 'Unnamed creature'}</h3>
-        </div>
-        <div className="row" style={{ flexDirection: 'column', alignItems: 'flex-end', gap: 6 }}>
-          <StatusPill status={c.status || 'confirmed'} />
-          {c.modelFile && <ModelFileBadge meta={c.modelFile} />}
-        </div>
-      </div>
-      {c.imagePlaceholderLabel ? (
-        <div style={{ marginBottom: 14 }}>
-          <ImageSlot label={c.imagePlaceholderLabel} height={170} />
-        </div>
-      ) : null}
-      <div className="meta-row">
-        <div className="k">Type</div>            <div className={'v ' + (c.type ? '' : 'empty')}>{c.type || '—'}</div>
-        <div className="k">Habitat</div>         <div className={'v ' + (c.habitat ? '' : 'empty')}>{c.habitat || '—'}</div>
-        <div className="k">Intelligence</div>    <div className={'v ' + (c.intelligence ? '' : 'empty')}>{c.intelligence || '—'}</div>
-        <div className="k">Threat</div>          <div className={'v ' + (c.threatLevel ? '' : 'empty')}>{c.threatLevel || '—'}</div>
-      </div>
-      {c.appearance && <Field2 label="Appearance" body={c.appearance} />}
-      {c.lore       && <Field2 label="Lore"       body={c.lore} />}
-      {c.behaviors  && <Field2 label="Notable behaviors" body={c.behaviors} />}
-      {c.magicConnection && <Field2 label="Connection to magic" body={c.magicConnection} />}
-      {c.modelFile && <ModelFileDownload meta={c.modelFile} />}
-      <div className="spread" style={{ marginTop: 14, paddingTop: 12, borderTop: '1px dashed var(--rule)' }}>
-        <Attrib entry={c} />
-        <div className="row">
-          <button className="btn small on-paper" onClick={onEdit}><Icon name="pencil" size={11}/> Edit</button>
-          <button className="btn small on-paper danger" onClick={onDelete}><Icon name="trash" size={11}/> Delete</button>
-        </div>
-      </div>
-    </article>
-  );
-}
-
-function Field2({ label, body }) {
-  return (
-    <div style={{ marginTop: 8 }}>
-      <div className="tiny-label">{label}</div>
-      <p style={{ fontSize: 15, margin: '4px 0 0' }}>{body}</p>
     </div>
   );
 }
-window.Field2 = Field2;
 
-function CreatureForm({ open, entry, categories, onClose, onSave }) {
-  const [d, setD] = useState({});
-  useEffect(() => {
-    setD({
-      name: '', category: categories[0] || '', type: '', habitat: '',
-      intelligence: '', threatLevel: '', appearance: '', lore: '',
-      behaviors: '', magicConnection: '', imageUrl: '',
-      status: 'confirmed', ...(entry || {}),
-    });
-  }, [entry, open, categories]);
+// ── Full dossier view ─────────────────────────────────────────────────────
+function CreatureDossier({ entry, onBack, onEdit }) {
+  const [activeTab, setActiveTab] = useState('overview');
+  const meta = getMeta(entry);
 
-  function set(k, v) { setD((p) => ({ ...p, [k]: v })); }
+  function updateMeta(patch) {
+    const newMeta = { ...meta, ...patch };
+    Ybe.updateEntry('bestiaryEntries', entry.id, { metadata: newMeta });
+    Ybe.logActivity('Bestiary', 'updated', entry.name);
+  }
+
+  function togglePipeline(stepId) {
+    const pipeline = meta.pipeline || {};
+    const current = pipeline[stepId] || 'pending';
+    const next = current === 'pending' ? 'done' : 'pending';
+    updateMeta({ pipeline: { ...pipeline, [stepId]: next } });
+  }
+
+  function updateRestrictions(text) {
+    const lines = text.split('\n').map(s => s.trim()).filter(Boolean);
+    updateMeta({ restrictions: lines });
+  }
+
+  const pipeline = meta.pipeline || {};
+  const doneCount = PIPELINE_STEPS.filter(s => pipeline[s.id] === 'done').length;
+  const restrictions = meta.restrictions || [];
+
+  const tabs = [
+    { id:'overview', label:'Overview' },
+    { id:'lore',     label:'Lore' },
+    { id:'magic',    label:'Magic' },
+    { id:'pipeline', label:'3D Pipeline' },
+  ];
 
   return (
-    <Modal open={open} onClose={onClose} width="wide">
+    <div className="dossier-shell">
+
+      {/* Dossier top bar */}
+      <div className="dossier-topbar">
+        <button className="dossier-back" onClick={onBack}>
+          <Icon name="chevronLeft" size={14}/> Bestiary
+        </button>
+        <span className="dossier-crumbs">
+          {entry.category || 'Unknown'} <span>/</span> {entry.name}
+        </span>
+        <div style={{ flex: 1 }}></div>
+        <div className="dossier-meta">
+          <div><span>class</span>{entry.entryType || entry.type || '—'}</div>
+          <div><span>intelligence</span>{entry.intelligence || '—'}</div>
+          <div><span>updated</span>{Ybe.formatStamp(entry.updatedAt).split('·')[0].trim()}</div>
+        </div>
+        <div className="dossier-status-pill" style={{ '--tc': THREAT_COLOR[entry.threatLevel] || 'var(--ash)' }}>
+          Threat · {entry.threatLevel || 'Unknown'}
+        </div>
+        <button className="btn small" onClick={onEdit}><Icon name="pencil" size={11}/> Edit</button>
+      </div>
+
+      {/* Title block */}
+      <div className="dossier-title-block">
+        <div>
+          <div className="dossier-kicker">
+            <span className="dossier-kicker-bar"></span>
+            Imperial Bestiary · {entry.category || 'Unknown'}
+          </div>
+          <h1 className="dossier-h1">{entry.name}</h1>
+          {meta.latinName && <div className="dossier-latin">— {meta.latinName} —</div>}
+        </div>
+        <div className="dossier-ids">
+          <div><span>habitat</span>{entry.habitat || '—'}</div>
+          <div><span>threat</span>{entry.threatLevel || '—'}</div>
+          <div><span>intelligence</span>{entry.intelligence || '—'}</div>
+          <div><span>status</span>{entry.status || 'pending'}</div>
+        </div>
+      </div>
+
+      {/* Hero — main plate + spec */}
+      <div className="dossier-hero">
+        <div className="dossier-stage">
+          <div className="dossier-stage-label">
+            <span>Plate I · Primary reference · Neutral pose</span>
+            <span style={{ opacity: 0.5 }}>Ref · For Modeling</span>
+          </div>
+          <ImageSlot
+            value={meta.imgMain || entry.imageUrl || ''}
+            onChange={(url) => updateMeta({ imgMain: url })}
+            height={420}
+            label="Primary reference — side profile, neutral stance, plain background"
+          />
+          {entry.habitat && (
+            <div className="dossier-ruler">
+              <span>Habitat:</span> {entry.habitat}
+            </div>
+          )}
+        </div>
+
+        <div className="dossier-spec">
+          {[
+            ['Type',        entry.entryType || entry.type || '—'],
+            ['Intelligence',entry.intelligence || '—'],
+            ['Habitat',     entry.habitat || '—'],
+            ['Threat',      entry.threatLevel || '—'],
+          ].map(([k, v]) => (
+            <div key={k} className="dossier-spec-row">
+              <span className="dossier-spec-k">{k}</span>
+              <span className="dossier-spec-v">{v}</span>
+            </div>
+          ))}
+          {entry.magicConnection && (
+            <div className="dossier-verdict">
+              {entry.magicConnection}
+            </div>
+          )}
+        </div>
+      </div>
+
+      {/* Orthographic strip — 4 plates */}
+      <div className="dossier-ortho">
+        {[
+          { key:'imgFront',  label:'Plate II',  sub:'Front' },
+          { key:'imgThreeQ', label:'Plate III', sub:'Three-quarter' },
+          { key:'imgDetail', label:'Plate IV',  sub:'Detail study' },
+          { key:'imgScale',  label:'Plate V',   sub:'Scale reference' },
+        ].map(({ key, label, sub }) => (
+          <div key={key} className="dossier-ortho-card">
+            <div className="dossier-ortho-label">
+              <span>{label}</span>
+              <b>{sub}</b>
+            </div>
+            <ImageSlot
+              value={meta[key] || ''}
+              onChange={(url) => updateMeta({ [key]: url })}
+              height={180}
+              label={sub}
+            />
+          </div>
+        ))}
+      </div>
+
+      {/* Field study tabs */}
+      <div className="dossier-deepdive">
+        <div className="section-mark" style={{ marginBottom: 18 }}>Field Study</div>
+        <div className="tabs">
+          {tabs.map((t, i) => (
+            <button key={t.id} role="tab" aria-selected={activeTab === t.id} onClick={() => setActiveTab(t.id)}>
+              <span className="num">0{i+1}</span>{t.label}
+            </button>
+          ))}
+          {doneCount > 0 && (
+            <span style={{ marginLeft:'auto', fontFamily:'var(--mono)', fontSize:10.5, letterSpacing:'0.14em', color:'var(--moss)', alignSelf:'center', paddingRight:18 }}>
+              Pipeline {doneCount}/{PIPELINE_STEPS.length}
+            </span>
+          )}
+        </div>
+
+        <div style={{ paddingTop: 32 }}>
+
+          {/* Overview tab */}
+          {activeTab === 'overview' && (
+            <div className="dossier-tab-panel">
+              <div className="dossier-prose-col">
+                <div className="dossier-eyebrow">§ 01 · Appearance</div>
+                <div className="dossier-drop-text">
+                  {entry.appearance
+                    ? entry.appearance.split(/\n+/).map((p, i) => <p key={i}>{p}</p>)
+                    : <p className="muted italic">No appearance description yet. Edit this entry to add one.</p>}
+                </div>
+              </div>
+              {(meta.readTargets || meta.references) && (
+                <div className="dossier-aside-col">
+                  {meta.readTargets && (
+                    <div className="dossier-aside-card">
+                      <div className="dossier-aside-label">Read targets</div>
+                      <div className="dossier-tag-cloud">
+                        {meta.readTargets.split(',').map(t => t.trim()).filter(Boolean).map(t => (
+                          <span key={t} className="dossier-tag">{t}</span>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* Lore tab */}
+          {activeTab === 'lore' && (
+            <div className="dossier-tab-panel">
+              <div className="dossier-prose-col">
+                <div className="dossier-eyebrow">§ 02 · Lore</div>
+                <h3 className="dossier-section-h">{entry.name} in the world</h3>
+                {entry.lore
+                  ? entry.lore.split(/\n+/).map((p, i) => <p key={i}>{p}</p>)
+                  : <p className="muted italic">No lore recorded yet.</p>}
+
+                {entry.behaviors && (
+                  <>
+                    <div className="dossier-eyebrow" style={{ marginTop: 28 }}>Notable behaviors</div>
+                    {entry.behaviors.split(/\n+/).map((p, i) => <p key={i}>{p}</p>)}
+                  </>
+                )}
+              </div>
+              {meta.inWorldAppearances && (
+                <div className="dossier-aside-col">
+                  <div className="dossier-aside-card">
+                    <div className="dossier-aside-label">In-world appearances</div>
+                    <p style={{ color:'var(--ink-2)', fontSize:15 }}>{meta.inWorldAppearances}</p>
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* Magic tab */}
+          {activeTab === 'magic' && (
+            <div className="paper-card">
+              <div className="dossier-eyebrow">§ 03 · Connection to Magic</div>
+              {entry.magicConnection
+                ? <div className="dossier-drop-text">{entry.magicConnection.split(/\n+/).map((p,i) => <p key={i}>{p}</p>)}</div>
+                : <p className="muted italic">No magical connection recorded.</p>}
+            </div>
+          )}
+
+          {/* Pipeline tab */}
+          {activeTab === 'pipeline' && (
+            <div>
+              <div className="dossier-eyebrow">§ 04 · 3D Pipeline · Meshy → Engine</div>
+              <h3 className="dossier-section-h" style={{ marginTop: 8 }}>From concept to walking asset</h3>
+              <div className="dossier-pipeline">
+                {PIPELINE_STEPS.map((step) => {
+                  const done = pipeline[step.id] === 'done';
+                  return (
+                    <div key={step.id} className={'dossier-pipe' + (done ? ' done' : '')} onClick={() => togglePipeline(step.id)}>
+                      <div className="dossier-pipe-step">Step {step.num}</div>
+                      <h4 className="dossier-pipe-title">{step.label}</h4>
+                      <p className="dossier-pipe-desc">{step.desc}</p>
+                      <div className="dossier-pipe-check">{done ? '✓' : '○'}</div>
+                    </div>
+                  );
+                })}
+              </div>
+              {entry.modelFile && entry.modelFile.fileName && (
+                <div style={{ marginTop: 24, padding: '16px 20px', background:'oklch(0.55 0.085 145 / 0.08)', borderLeft:'2px solid var(--moss)', borderRadius:2 }}>
+                  <div style={{ fontFamily:'var(--mono)', fontSize:10.5, letterSpacing:'0.16em', textTransform:'uppercase', color:'var(--moss)', marginBottom:6 }}>3D Model attached</div>
+                  <div style={{ color:'var(--ink)', fontFamily:'var(--serif)', fontSize:16 }}>{entry.modelFile.fileName}</div>
+                </div>
+              )}
+            </div>
+          )}
+
+        </div>
+      </div>
+
+      {/* Restrictions — always shown below tabs */}
+      <div className="dossier-restrictions">
+        <div className="dossier-restrictions-inner">
+          <h3>What <em>{entry.name}</em> is not</h3>
+          <p className="dossier-restrictions-lede">
+            Anything below should be rejected at concept review. This creature exists in a serious world. It gets its weight from the lore, not from effects.
+          </p>
+          {restrictions.length > 0 ? (
+            <div className="dossier-restrict-grid">
+              {restrictions.map((r, i) => <div key={i} className="dossier-restrict-item">{r}</div>)}
+            </div>
+          ) : (
+            <div style={{ fontStyle:'italic', color:'var(--ash)', fontSize:14 }}>No design restrictions recorded. Edit this entry to add them.</div>
+          )}
+          <div style={{ marginTop:18 }}>
+            <RestrictionsEditor value={restrictions} onChange={(lines) => updateMeta({ restrictions: lines })} />
+          </div>
+        </div>
+      </div>
+
+      {/* Dossier footer */}
+      <div className="dossier-footer">
+        <span>Imperial Bestiary · {entry.category} · {entry.name}</span>
+        <span className="dossier-footer-sigil">— recorded under the seal of the Concept Studio —</span>
+        <span><Attrib entry={entry} /></span>
+      </div>
+
+    </div>
+  );
+}
+
+// ── Restrictions inline editor ───────────────────────────────────────────
+function RestrictionsEditor({ value, onChange }) {
+  const [open, setOpen] = useState(false);
+  const [draft, setDraft] = useState('');
+  useEffect(() => { if (open) setDraft(value.join('\n')); }, [open]);
+  function save() { onChange(draft.split('\n').map(s=>s.trim()).filter(Boolean)); setOpen(false); }
+  if (!open) return <button className="btn small on-paper ghost" onClick={() => setOpen(true)}><Icon name="pencil" size={10}/> Edit restrictions</button>;
+  return (
+    <div>
+      <Field label="One restriction per line">
+        <TextArea value={draft} onChange={setDraft} rows={6} placeholder={"No glowing eyes\nNo magical aura\nNo armor or barding"} />
+      </Field>
+      <div className="row" style={{ gap:8, marginTop:8 }}>
+        <button className="btn on-paper ghost small" onClick={() => setOpen(false)}>Cancel</button>
+        <button className="btn on-paper primary small" onClick={save}>Save</button>
+      </div>
+    </div>
+  );
+}
+
+// ── Creature form (add / edit) ────────────────────────────────────────────
+function CreatureForm({ entry, onClose, onSave }) {
+  const store = Ybe.useStore();
+  const meta = getMeta(entry);
+  const init = {
+    name:'', category: store.bestiaryCategories[0] || 'Wild Fauna',
+    entryType:'', habitat:'', intelligence:'', threatLevel:'', status:'pending',
+    appearance:'', lore:'', behaviors:'', magicConnection:'',
+    imageUrl:'', ...(entry || {}),
+  };
+  const [d, setD] = useState(init);
+  const [metaDraft, setMetaDraft] = useState({ latinName:'', readTargets:'', inWorldAppearances:'', ...meta });
+  useEffect(() => { setD({ ...init, ...(entry || {}) }); setMetaDraft({ latinName:'', readTargets:'', inWorldAppearances:'', ...getMeta(entry) }); }, [entry]);
+
+  function set(k, v) { setD(prev => ({ ...prev, [k]: v })); }
+
+  function save() {
+    const payload = { ...d, metadata: metaDraft };
+    onSave(payload);
+  }
+
+  return (
+    <Modal open onClose={onClose}>
       <div className="modal-head">
         <div>
           <h2>{entry ? 'Edit creature' : 'Add a creature'}</h2>
-          <div className="tiny-label" style={{ marginTop: 6 }}>Bestiary · creature index</div>
+          <div className="tiny-label" style={{ marginTop:6 }}>Bestiary · Creature Index</div>
         </div>
         <div className="doc-code">BEST-001 · CREATURE</div>
       </div>
 
       <div className="field-row">
         <Field label="Name"><TextInput value={d.name} onChange={(v) => set('name', v)} placeholder="The Crowned Stag" /></Field>
-        <Field label="Category"><Select value={d.category} onChange={(v) => set('category', v)} options={categories} /></Field>
+        <Field label="Category">
+          <Select value={d.category} onChange={(v) => set('category', v)} options={store.bestiaryCategories} />
+        </Field>
       </div>
-      <div className="field-row three">
-        <Field label="Type"><Select value={d.type} onChange={(v) => set('type', v)} options={['', ...CREATURE_TYPES]} placeholder="—" /></Field>
-        <Field label="Intelligence"><Select value={d.intelligence} onChange={(v) => set('intelligence', v)} options={['', ...INTELLIGENCE]} placeholder="—" /></Field>
-        <Field label="Threat level"><Select value={d.threatLevel} onChange={(v) => set('threatLevel', v)} options={['', ...THREAT]} placeholder="—" /></Field>
-      </div>
-      <Field label="Habitat"><TextInput value={d.habitat} onChange={(v) => set('habitat', v)} placeholder="Forests and open plains of the imperial heartlands" /></Field>
-      <Field label="Appearance"><TextArea value={d.appearance} onChange={(v) => set('appearance', v)} rows={3} /></Field>
-      <Field label="Lore"><TextArea value={d.lore} onChange={(v) => set('lore', v)} rows={3} /></Field>
-      <Field label="Notable behaviors"><TextArea value={d.behaviors} onChange={(v) => set('behaviors', v)} rows={2} /></Field>
-      <Field label="Connection to magic"><TextArea value={d.magicConnection} onChange={(v) => set('magicConnection', v)} rows={2}
-        placeholder="None / Ascended-linked / Veilborn-affected / unknown" /></Field>
-      <Field label="Image">
-        <ImageSlot value={d.imageUrl || ''} onChange={(v) => set('imageUrl', v)} height={180} />
-      </Field>
 
-      <ModelFileSlot
-        meta={d.modelFile}
-        onUploaded={(meta) => set('modelFile', meta)}
-        onCleared={() => set('modelFile', null)}
-      />
+      <div className="field-row three">
+        <Field label="Type">
+          <Select value={d.entryType || d.type || ''} onChange={(v) => set('entryType', v)} options={['', ...CREATURE_TYPES]} />
+        </Field>
+        <Field label="Intelligence">
+          <Select value={d.intelligence} onChange={(v) => set('intelligence', v)} options={['', ...INTELLIGENCE]} />
+        </Field>
+        <Field label="Threat level">
+          <Select value={d.threatLevel} onChange={(v) => set('threatLevel', v)} options={['', ...THREAT]} />
+        </Field>
+      </div>
+
+      <Field label="Habitat"><TextInput value={d.habitat} onChange={(v) => set('habitat', v)} placeholder="Forests and open plains of the imperial heartlands" /></Field>
+      <Field label="In-world name / Latin equivalent (optional)">
+        <TextInput value={metaDraft.latinName} onChange={(v) => setMetaDraft({...metaDraft, latinName:v})} placeholder="Cervus imperialis coronatus" />
+      </Field>
+      <Field label="Appearance"><TextArea value={d.appearance} onChange={(v) => set('appearance', v)} rows={4} /></Field>
+      <Field label="Lore"><TextArea value={d.lore} onChange={(v) => set('lore', v)} rows={4} /></Field>
+      <Field label="Notable behaviors"><TextArea value={d.behaviors} onChange={(v) => set('behaviors', v)} rows={3} /></Field>
+      <Field label="Connection to magic"><TextArea value={d.magicConnection} onChange={(v) => set('magicConnection', v)} rows={2} placeholder="None / Ascended-linked / Veilborn-affected / unknown" /></Field>
+      <Field label="Read targets — comma separated (what should this creature evoke visually)">
+        <TextInput value={metaDraft.readTargets} onChange={(v) => setMetaDraft({...metaDraft, readTargets:v})} placeholder="Regal, ancient, intimidating, symbolic" />
+      </Field>
+      <Field label="In-world appearances (empire symbolism, cultural references)">
+        <TextArea value={metaDraft.inWorldAppearances} onChange={(v) => setMetaDraft({...metaDraft, inWorldAppearances:v})} rows={3} />
+      </Field>
+      <Field label="Primary image">
+        <ImageSlot value={d.imageUrl || ''} onChange={(v) => set('imageUrl', v)} height={160} />
+      </Field>
 
       <div className="modal-actions">
         <ConfirmedToggle value={d.status === 'confirmed'} onChange={(b) => set('status', b ? 'confirmed' : 'pending')} />
         <div className="right">
           <button className="btn on-paper ghost" onClick={onClose}>Cancel</button>
-          <button className="btn on-paper primary" disabled={!d.name?.trim()} onClick={() => onSave(d)}>
-            {entry ? 'Save changes' : 'Add creature'}
-          </button>
+          <button className="btn on-paper primary" disabled={!d.name?.trim()} onClick={save}>{entry ? 'Save changes' : 'Add creature'}</button>
         </div>
       </div>
     </Modal>
   );
 }
 
-// ── Categories management modal ──────────────────────────────────────────
-function CategoriesModal({ open, onClose }) {
-  const store = Ybe.useStore();
-  const [list, setList] = useState(store.bestiaryCategories);
-  useEffect(() => { if (open) setList(store.bestiaryCategories); }, [open]);
-
-  function set(i, v) { const next = list.slice(); next[i] = v; setList(next); }
-  function add() { setList([...list, '']); }
-  function remove(i) { setList(list.filter((_, idx) => idx !== i)); }
-  function save() {
-    const cleaned = list.map((s) => s.trim()).filter(Boolean);
-    Ybe.setStore({ bestiaryCategories: cleaned });
-    Ybe.logActivity('Bestiary', 'updated', 'creature categories');
-    onClose();
-  }
-
+// ── Species form ──────────────────────────────────────────────────────────
+function SpeciesForm({ entry, onClose, onSave }) {
+  const [d, setD] = useState({ name:'', description:'', traits:'', socialStatus:'', notes:'', status:'confirmed', ...(entry||{}) });
+  useEffect(() => { setD({ name:'', description:'', traits:'', socialStatus:'', notes:'', status:'confirmed', ...(entry||{}) }); }, [entry]);
+  function set(k,v) { setD(p => ({...p,[k]:v})); }
   return (
-    <Modal open={open} onClose={onClose} width="compact">
+    <Modal open onClose={onClose}>
       <div className="modal-head">
-        <div>
-          <h2>Manage categories</h2>
-          <div className="tiny-label" style={{ marginTop: 6 }}>Bestiary · categories</div>
-        </div>
-        <div className="doc-code">BEST-001 · CATS</div>
+        <h2>{entry ? 'Edit species' : 'Add a species'}</h2>
+        <div className="doc-code">BEST-001 · SPECIES</div>
       </div>
-      <p className="muted" style={{ marginBottom: 14 }}>Add, rename, or remove categories. Creatures keep their existing category text even if you rename here.</p>
-      <RepeaterText label="Categories" items={list} placeholder="Wild Fauna" onChange={setList} />
+      <Field label="Species name"><TextInput value={d.name} onChange={(v) => set('name',v)} placeholder="Human" /></Field>
+      <Field label="Description"><TextArea value={d.description} onChange={(v) => set('description',v)} rows={3} /></Field>
+      <Field label="Traits"><TextInput value={d.traits} onChange={(v) => set('traits',v)} /></Field>
+      <Field label="Social status in most kingdoms"><TextInput value={d.socialStatus} onChange={(v) => set('socialStatus',v)} /></Field>
+      <Field label="Notes"><TextArea value={d.notes} onChange={(v) => set('notes',v)} rows={2} /></Field>
       <div className="modal-actions">
-        <button className="btn on-paper ghost" onClick={onClose}>Cancel</button>
-        <button className="btn on-paper primary" onClick={save}>Save categories</button>
+        <ConfirmedToggle value={d.status==='confirmed'} onChange={(b) => set('status',b?'confirmed':'pending')} />
+        <div className="right">
+          <button className="btn on-paper ghost" onClick={onClose}>Cancel</button>
+          <button className="btn on-paper primary" disabled={!d.name?.trim()} onClick={() => onSave(d)}>{entry ? 'Save' : 'Add species'}</button>
+        </div>
       </div>
     </Modal>
+  );
+}
+
+// ── Main section ──────────────────────────────────────────────────────────
+function BestiarySection() {
+  const store = Ybe.useStore();
+  const [view, setView] = useState('list'); // 'list' | 'dossier'
+  const [listTab, setListTab] = useState('creatures');
+  const [selectedId, setSelectedId] = useState(null);
+  const [editing, setEditing] = useState(null);
+  const [editingSpecies, setEditingSpecies] = useState(null);
+  const [deleting, setDeleting] = useState(null);
+  const [managingCats, setManagingCats] = useState(false);
+  const [filterCat, setFilterCat] = useState('all');
+
+  const selectedEntry = selectedId ? store.bestiaryEntries.find(e => e.id === selectedId) : null;
+
+  function openDossier(entry) { setSelectedId(entry.id); setView('dossier'); }
+  function closeDossier()     { setView('list'); setSelectedId(null); }
+
+  function saveCreature(data) {
+    if (editing && editing.id) {
+      Ybe.updateEntry('bestiaryEntries', editing.id, data);
+      Ybe.logActivity('Bestiary', 'edited', data.name);
+    } else {
+      Ybe.addEntry('bestiaryEntries', data);
+      Ybe.logActivity('Bestiary', 'added', data.name);
+    }
+    setEditing(null);
+  }
+
+  function saveSpecies(data) {
+    if (editingSpecies && editingSpecies.id) {
+      Ybe.updateEntry('bestiarySpecies', editingSpecies.id, data);
+    } else {
+      Ybe.addEntry('bestiarySpecies', data);
+    }
+    setEditingSpecies(null);
+  }
+
+  function confirmDelete() {
+    if (!deleting) return;
+    Ybe.deleteEntry(deleting.collection, deleting.entry.id);
+    Ybe.logActivity('Bestiary', 'removed', deleting.entry.name);
+    setDeleting(null);
+  }
+
+  const filtered = store.bestiaryEntries.filter(e => filterCat === 'all' || e.category === filterCat);
+
+  // Dossier view — full page
+  if (view === 'dossier' && selectedEntry) {
+    return (
+      <Section>
+        <CreatureDossier
+          entry={selectedEntry}
+          onBack={closeDossier}
+          onEdit={() => setEditing(selectedEntry)}
+        />
+        {editing && (
+          <CreatureForm entry={editing} onClose={() => setEditing(null)} onSave={saveCreature} />
+        )}
+      </Section>
+    );
+  }
+
+  // List view
+  return (
+    <Section>
+      <DocHead
+        kicker="Index · Fauna and Enemies"
+        title="The"
+        titleEm="Bestiary"
+        deck="Every creature, enemy, and playable species in the world of Eravan. Click any entry to open its full dossier."
+        code="BEST-001"
+        codeMeta={{ species: store.bestiarySpecies.length, creatures: store.bestiaryEntries.length }}
+      />
+
+      <div className="spread" style={{ marginBottom: 18 }}>
+        <nav className="tabs" role="tablist" style={{ flex: 1 }}>
+          <button role="tab" aria-selected={listTab==='creatures'} onClick={() => setListTab('creatures')}>
+            <span className="num">01</span>Creature Index
+          </button>
+          <button role="tab" aria-selected={listTab==='species'} onClick={() => setListTab('species')}>
+            <span className="num">02</span>Playable Species
+          </button>
+        </nav>
+        <div className="row">
+          {listTab === 'creatures' && (
+            <button className="btn ghost small" onClick={() => setManagingCats(true)}>
+              <Icon name="drag" size={11}/> Categories
+            </button>
+          )}
+          <button className="btn primary" onClick={() => listTab === 'species' ? setEditingSpecies({}) : setEditing({})}>
+            <Icon name="plus" size={13}/> Add {listTab === 'species' ? 'species' : 'creature'}
+          </button>
+        </div>
+      </div>
+
+      {/* Creatures tab */}
+      {listTab === 'creatures' && (
+        <>
+          {/* Category filter */}
+          {store.bestiaryEntries.length > 0 && (
+            <div className="creature-filter-bar">
+              <button className={'filter-chip' + (filterCat==='all' ? ' active' : '')} onClick={() => setFilterCat('all')}>
+                All <span>{store.bestiaryEntries.length}</span>
+              </button>
+              {store.bestiaryCategories.map(cat => {
+                const count = store.bestiaryEntries.filter(e => e.category === cat).length;
+                if (!count) return null;
+                return (
+                  <button key={cat} className={'filter-chip' + (filterCat===cat ? ' active' : '')} onClick={() => setFilterCat(cat)}>
+                    {cat} <span>{count}</span>
+                  </button>
+                );
+              })}
+            </div>
+          )}
+
+          {filtered.length === 0 ? (
+            <EmptyState
+              dark
+              title="No creatures recorded yet."
+              body="Every entry becomes a full dossier with image plates, lore, and a 3D pipeline tracker. Add the first one."
+              action={<button className="btn primary" onClick={() => setEditing({})}><Icon name="plus" size={13}/> Add the first creature</button>}
+            />
+          ) : (
+            <div className="creature-grid">
+              {filtered.map(entry => (
+                <CreatureCard
+                  key={entry.id}
+                  entry={entry}
+                  onClick={() => openDossier(entry)}
+                  onEdit={() => setEditing(entry)}
+                  onDelete={() => setDeleting({ collection:'bestiaryEntries', entry })}
+                />
+              ))}
+            </div>
+          )}
+        </>
+      )}
+
+      {/* Species tab */}
+      {listTab === 'species' && (
+        <>
+          {store.bestiarySpecies.length === 0 ? (
+            <EmptyState dark title="No species recorded yet." body="Add confirmed playable species as they are decided." action={<button className="btn primary" onClick={() => setEditingSpecies({})}><Icon name="plus" size={13}/> Add species</button>} />
+          ) : (
+            <div className="stack">
+              {store.bestiarySpecies.map(s => (
+                <div key={s.id} className="paper-card">
+                  <div className="card-head">
+                    <h3>{s.name}</h3>
+                    <div className="row" style={{ gap:8 }}>
+                      <button className="btn small on-paper" onClick={() => setEditingSpecies(s)}><Icon name="pencil" size={11}/> Edit</button>
+                      <button className="btn small on-paper danger" onClick={() => setDeleting({ collection:'bestiarySpecies', entry:s })}><Icon name="trash" size={11}/></button>
+                    </div>
+                  </div>
+                  {s.description && <p>{s.description}</p>}
+                  <div className="paper-card tight" style={{ background:'var(--paper-2)', boxShadow:'none', marginTop:12 }}>
+                    <div className="meta-row">
+                      <div><div className="k">Traits</div><div className="v">{s.traits || '—'}</div></div>
+                      <div><div className="k">Social standing</div><div className="v">{s.socialStatus || '—'}</div></div>
+                    </div>
+                  </div>
+                  <Attrib entry={s} />
+                </div>
+              ))}
+            </div>
+          )}
+        </>
+      )}
+
+      {/* Category manager */}
+      {managingCats && (
+        <Modal open onClose={() => setManagingCats(false)}>
+          <div className="modal-head"><h2>Manage categories</h2><div className="doc-code">BEST-001</div></div>
+          <RepeaterText label="Categories" items={store.bestiaryCategories} placeholder="Wild Fauna" onChange={(list) => { Ybe.setStore({ bestiaryCategories: list }); }} />
+          <div className="modal-actions"><span></span><button className="btn on-paper primary" onClick={() => setManagingCats(false)}>Done</button></div>
+        </Modal>
+      )}
+
+      {/* Forms */}
+      {editing && <CreatureForm entry={editing.id ? editing : null} onClose={() => setEditing(null)} onSave={saveCreature} />}
+      {editingSpecies && <SpeciesForm entry={editingSpecies.id ? editingSpecies : null} onClose={() => setEditingSpecies(null)} onSave={saveSpecies} />}
+
+      {/* Delete confirm */}
+      {deleting && (
+        <Modal open onClose={() => setDeleting(null)}>
+          <ConfirmDialog
+            title={`Remove ${deleting.entry.name}?`}
+            body="This will permanently delete this entry and all associated data."
+            onConfirm={confirmDelete}
+            onCancel={() => setDeleting(null)}
+          />
+        </Modal>
+      )}
+    </Section>
   );
 }
 
 window.BestiarySection = BestiarySection;
-window.CreatureCard = CreatureCard;
-
-// ── 3D model file attachment (per-creature) ──────────────────────────────
-function ModelFileSlot({ meta, onUploaded, onCleared }) {
-  const [busy, setBusy] = useState(false);
-  const [err, setErr] = useState('');
-  const [over, setOver] = useState(false);
-  const inputRef = useRef(null);
-  const FILES = window.YSTC_FILES;
-
-  async function ingest(file) {
-    setErr('');
-    if (!file) return;
-    if (!FILES.isAllowed(file)) {
-      setErr('Unsupported file type. Allowed: ' + FILES.EXTENSIONS.join(', ').toUpperCase());
-      return;
-    }
-    setBusy(true);
-    try {
-      // If replacing, clean up the old blob.
-      if (meta && meta.id) await FILES.deleteBlob(meta.id).catch(() => {});
-      const newMeta = await FILES.storeFile(file, Ybe.currentDisplayName());
-      onUploaded(newMeta);
-      Ybe.logActivity('Bestiary', 'attached 3D file', file.name);
-    } catch (e) {
-      setErr(e.message || 'Could not save the file.');
-    } finally {
-      setBusy(false);
-    }
-  }
-
-  async function clear() {
-    if (meta && meta.id) await FILES.deleteBlob(meta.id).catch(() => {});
-    onCleared();
-  }
-
-  function onPick(e) {
-    const f = e.target.files && e.target.files[0];
-    if (f) ingest(f);
-    if (inputRef.current) inputRef.current.value = '';
-  }
-  function onDrop(e) {
-    e.preventDefault(); setOver(false);
-    const f = e.dataTransfer.files && e.dataTransfer.files[0];
-    if (f) ingest(f);
-  }
-
-  if (meta) {
-    return (
-      <div className="field">
-        <label>3D model file</label>
-        <div style={{
-          display: 'grid', gridTemplateColumns: '46px 1fr auto', gap: 14, alignItems: 'center',
-          background: 'oklch(0.93 0.018 80 / 0.55)',
-          border: '1px solid var(--rule)',
-          padding: '12px 14px', borderRadius: 2,
-        }}>
-          <div style={{
-            width: 46, height: 46, borderRadius: 2,
-            background: 'var(--ink)', color: 'var(--paper)',
-            display: 'flex', alignItems: 'center', justifyContent: 'center',
-            fontFamily: 'var(--mono)', fontSize: 11, letterSpacing: '0.12em', fontWeight: 600,
-          }}>
-            {FILES.extOf(meta.fileName).toUpperCase() || '3D'}
-          </div>
-          <div>
-            <div style={{ fontFamily: 'var(--serif)', fontStyle: 'italic', fontSize: 17, color: 'var(--ink)' }}>
-              {meta.fileName}
-            </div>
-            <div className="attrib" style={{ marginTop: 3 }}>
-              <span>uploaded</span><b>{meta.uploadedBy || '—'}</b>
-              <span className="sep">·</span>
-              <span>{Ybe.formatStamp(meta.uploadedAt)}</span>
-              <span className="sep">·</span>
-              <span>{FILES.formatSize(meta.size)}</span>
-            </div>
-          </div>
-          <div className="row">
-            <button className="btn small on-paper" type="button" onClick={() => inputRef.current && inputRef.current.click()}>
-              Replace
-            </button>
-            <button className="btn small on-paper danger" type="button" onClick={clear}>
-              <Icon name="trash" size={11}/> Remove
-            </button>
-          </div>
-        </div>
-        <input ref={inputRef} type="file" hidden accept={FILES.ACCEPT_ATTR} onChange={onPick} />
-        {err && <div style={{ color: 'var(--imperial)', fontFamily: 'var(--mono)', fontSize: 11, letterSpacing: '0.12em', textTransform: 'uppercase', marginTop: 6 }}>{err}</div>}
-      </div>
-    );
-  }
-
-  return (
-    <div className="field">
-      <label>3D model file <span className="muted italic" style={{ textTransform: 'none', letterSpacing: 0, fontFamily: 'var(--serif)', fontStyle: 'italic', marginLeft: 8 }}>— optional, for White's download</span></label>
-      <div
-        onClick={() => inputRef.current && inputRef.current.click()}
-        onDragOver={(e) => { e.preventDefault(); setOver(true); }}
-        onDragLeave={() => setOver(false)}
-        onDrop={onDrop}
-        style={{
-          padding: 22,
-          background: over ? 'oklch(0.45 0.135 27 / 0.10)' : 'oklch(0.93 0.018 80 / 0.55)',
-          border: '1.5px dashed ' + (over ? 'var(--imperial)' : 'var(--paper-3)'),
-          borderRadius: 2,
-          cursor: 'pointer',
-          textAlign: 'center',
-          color: 'var(--ink-mute)',
-          transition: 'background .12s, border-color .12s',
-        }}
-      >
-        <div style={{ marginBottom: 6 }}><Icon name="drag" size={20} /></div>
-        <div style={{ fontFamily: 'var(--serif)', fontStyle: 'italic', fontSize: 16, color: 'var(--ink)' }}>
-          {busy ? 'Storing…' : 'Drop a 3D model file or click to browse'}
-        </div>
-        <div style={{ fontFamily: 'var(--mono)', fontSize: 10.5, letterSpacing: '0.18em', textTransform: 'uppercase', marginTop: 6 }}>
-          FBX · GLB · OBJ · BLEND
-        </div>
-      </div>
-      <input ref={inputRef} type="file" hidden accept={FILES.ACCEPT_ATTR} onChange={onPick} />
-      {err && <div style={{ color: 'var(--imperial)', fontFamily: 'var(--mono)', fontSize: 11, letterSpacing: '0.12em', textTransform: 'uppercase', marginTop: 6 }}>{err}</div>}
-    </div>
-  );
-}
-
-function ModelFileBadge({ meta }) {
-  return (
-    <span
-      className="status-pill"
-      title={meta.fileName}
-      style={{
-        color: 'var(--paper)',
-        background: 'var(--ink)',
-        borderColor: 'var(--ink)',
-      }}
-    >
-      <Icon name="drag" size={10} />
-      {window.YSTC_FILES.extOf(meta.fileName).toUpperCase() || '3D'}
-    </span>
-  );
-}
-
-function ModelFileDownload({ meta }) {
-  const [busy, setBusy] = useState(false);
-  const [err, setErr] = useState('');
-  async function dl() {
-    setErr(''); setBusy(true);
-    try {
-      await window.YSTC_FILES.downloadStored(meta);
-      Ybe.logActivity('Bestiary', 'downloaded 3D file', meta.fileName);
-    } catch (e) {
-      setErr(e.message || 'Download failed.');
-    } finally { setBusy(false); }
-  }
-  return (
-    <div style={{
-      marginTop: 12,
-      padding: '12px 14px',
-      background: 'oklch(0.86 0.025 78)',
-      border: '1px solid var(--rule)',
-      borderRadius: 2,
-      display: 'grid', gridTemplateColumns: '42px 1fr auto', gap: 12, alignItems: 'center',
-    }}>
-      <div style={{
-        width: 42, height: 42, borderRadius: 2,
-        background: 'var(--ink)', color: 'var(--paper)',
-        display: 'flex', alignItems: 'center', justifyContent: 'center',
-        fontFamily: 'var(--mono)', fontSize: 10.5, letterSpacing: '0.12em', fontWeight: 600,
-      }}>
-        {window.YSTC_FILES.extOf(meta.fileName).toUpperCase() || '3D'}
-      </div>
-      <div style={{ minWidth: 0 }}>
-        <div className="tiny-label">3D model · attached</div>
-        <div style={{ fontFamily: 'var(--serif)', fontStyle: 'italic', fontSize: 16, color: 'var(--ink)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-          {meta.fileName}
-        </div>
-        <div className="attrib" style={{ marginTop: 2 }}>
-          <span>{window.YSTC_FILES.formatSize(meta.size)}</span>
-          <span className="sep">·</span>
-          <b>{meta.uploadedBy}</b>
-          <span className="sep">·</span>
-          <span>{Ybe.formatStamp(meta.uploadedAt)}</span>
-        </div>
-        {err && <div style={{ color: 'var(--imperial)', fontFamily: 'var(--mono)', fontSize: 11, marginTop: 4 }}>{err}</div>}
-      </div>
-      <button className="btn on-paper primary" onClick={dl} disabled={busy}>
-        <Icon name="out" size={12} style={{ transform: 'rotate(180deg)' }}/> {busy ? 'Preparing…' : 'Download'}
-      </button>
-    </div>
-  );
-}
-
-window.ModelFileSlot = ModelFileSlot;
-window.ModelFileBadge = ModelFileBadge;
-window.ModelFileDownload = ModelFileDownload;

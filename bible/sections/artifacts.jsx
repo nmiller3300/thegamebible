@@ -50,8 +50,7 @@ function ArtifactsSection() {
       <article className="paper-card">
         <div className="card-head">
           <div>
-            <div className="eyebrow muted">Editable table</div>
-            <h3>Confirmed tiers</h3>
+                        <h3>Confirmed tiers</h3>
           </div>
           <button className="btn on-paper small" onClick={() => setEditingTiers(true)}><Icon name="pencil" size={11}/> Edit tiers</button>
         </div>

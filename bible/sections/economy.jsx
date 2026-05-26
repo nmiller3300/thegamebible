@@ -24,7 +24,7 @@ function EconomySection() {
       <SectionMark>Money &amp; goods</SectionMark>
       <div style={{ display: 'grid', gap: 18, gridTemplateColumns: 'repeat(auto-fit, minmax(420px, 1fr))' }}>
         <TableBlock
-          title="Currency system"
+          title="Currency"
           columns={[
             { key: 'coin', label: 'Coin', placeholder: 'Crown' },
             { key: 'value', label: 'Value', placeholder: '100 silver' },
@@ -35,7 +35,7 @@ function EconomySection() {
           isConfirmed={b.currency.isConfirmed}
           onChange={(rows) => setRows('currency', rows)}
           onStatusChange={(v) => patch('currency', { isConfirmed: v })}
-          emptyHint="What coins exist, what they're worth, who uses them."
+          emptyHint=""
         />
         <TableBlock
           title="Trade goods"

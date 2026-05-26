@@ -5,19 +5,22 @@ function WorldSection() {
   const store = Yw.useStore();
 
   function patchBlock(key, partial) {
-    const next = { ...store.worldBlocks, [key]: { ...store.worldBlocks[key], ...partial } };
-    Yw.setStore({ worldBlocks: next });
+    const updated = { ...store.worldBlocks[key], ...partial };
+    Yw.saveWorldBlock(key, updated);
     Yw.logActivity('World', 'edited', key);
   }
+
   function updateRegions(next) {
     Yw.setStore({ worldRegions: next });
-  }
-  function updateRegionConfirmed(b) {
-    // set all rows to same value
-    const next = store.worldRegions.map((r) => ({ ...r, isConfirmed: b }));
-    Yw.setStore({ worldRegions: next });
+    next.forEach((r) => Yw.updateEntry('worldRegions', r.id, r));
   }
 
+  function handleMapUpload(url) {
+    Yw.saveWorldBlock('mapImage', { content: url, isConfirmed: true });
+    Yw.logActivity('World', 'uploaded', 'map image');
+  }
+
+  const mapImageUrl = store.worldBlocks.mapImage ? store.worldBlocks.mapImage.content : '';
   const regionsAllConfirmed = store.worldRegions.length > 0 && store.worldRegions.every((r) => r.isConfirmed);
 
   return (
@@ -26,113 +29,77 @@ function WorldSection() {
         kicker="System · Geography and place"
         title="World &"
         titleEm="Geography"
-        deck={`The continent is named ${store.projectSettings.worldName}. Everything else — cities, mountains, rivers, magical zones — is being decided.`}
+        deck={`The continent is named ${store.projectSettings.worldName}. Cities, mountains, rivers, and magical zones are added as they are decided.`}
         code="WORLD-001"
         codeMeta={{ regions: store.worldRegions.length, map: store.projectSettings.mapStatus }}
       />
 
-      {/* Map placeholder */}
-      <SectionMark>The map</SectionMark>
+      <SectionMark>The Map</SectionMark>
       <div className="paper-card spacious">
-        <div className="spread" style={{ marginBottom: 14 }}>
-          <div>
-            <div className="eyebrow muted">Map · primary plate</div>
-            <h3>{store.projectSettings.mapStatus === 'uploaded' ? 'Map plate uploaded' : 'Awaiting White’s physical map'}</h3>
-          </div>
+        <div className="spread" style={{ marginBottom: 18 }}>
+          <h3 style={{ margin: 0 }}>
+            {store.projectSettings.mapStatus === 'uploaded' ? `${store.projectSettings.worldName} — Primary Map` : 'Map pending'}
+          </h3>
           <StatusPill status={store.projectSettings.mapStatus === 'uploaded' ? 'confirmed' : 'pending'} />
         </div>
-        <div
-          style={{
-            height: 360,
-            background: 'oklch(0.93 0.018 80 / 0.55)',
-            border: '1.5px dashed var(--paper-3)',
-            borderRadius: 2,
-            display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
-            color: 'var(--ink-mute)',
-            gap: 10,
-          }}
-        >
-          <Icon name="globe" size={36} stroke={1.2} />
-          <div style={{ fontFamily: 'var(--mono)', fontSize: 11, letterSpacing: '0.2em', textTransform: 'uppercase' }}>Map plate · 1 of 1</div>
-          <div style={{ fontStyle: 'italic', fontSize: 16, color: 'var(--ink)' }}>
-            Drop White’s map scan here once it exists.
-          </div>
-          <div style={{ fontSize: 13, color: 'var(--ink-mute)' }}>Toggle Map Status from Settings when ready.</div>
+        <ImageSlot
+          value={mapImageUrl}
+          onChange={handleMapUpload}
+          height={400}
+          label="Upload White's map when it is ready"
+        />
+        <div style={{ marginTop: 18 }}>
+          <Field label="Map notes">
+            <TextArea
+              value={store.worldNotes}
+              onChange={(v) => Yw.setStore({ worldNotes: v })}
+              rows={3}
+              placeholder="Region names, geographic ideas, anything that needs a home before the map is complete."
+            />
+          </Field>
         </div>
-        <div className="divider"></div>
-        <Field label="Map notes — a scratchpad for either user">
-          <TextArea
-            value={store.worldNotes}
-            onChange={(v) => { Yw.setStore({ worldNotes: v }); }}
-            rows={3}
-            placeholder="Drop region names, geographic ideas, river guesses, anything that won't fit elsewhere yet."
-          />
-        </Field>
       </div>
 
       <SectionMark>Regions</SectionMark>
       <TableBlock
-        title="Five regions — placeholder"
+        title="Regions of Eravan"
         columns={[
-          { key: 'name', label: 'Region name', placeholder: 'Northern' },
+          { key: 'name', label: 'Region', placeholder: 'Name' },
           { key: 'climate', label: 'Climate', placeholder: 'Cold, alpine' },
-          { key: 'dominantFaction', label: 'Dominant faction', placeholder: 'TBD' },
+          { key: 'dominantFaction', label: 'Faction', placeholder: 'TBD' },
           { key: 'notableFeature', label: 'Notable feature', placeholder: 'TBD' },
         ]}
         rows={store.worldRegions}
         onChange={updateRegions}
         isConfirmed={regionsAllConfirmed}
-        onStatusChange={updateRegionConfirmed}
-        emptyHint="The brief seeds five region rows. Edit or add as the map fills in."
+        onStatusChange={(b) => {
+          const next = store.worldRegions.map((r) => ({ ...r, isConfirmed: b }));
+          Yw.setStore({ worldRegions: next });
+        }}
       />
 
-      <SectionMark>World summary</SectionMark>
+      <SectionMark>World Summary</SectionMark>
       <div className="stack">
-        <ProseBlock
-          title="World summary"
-          body={store.worldBlocks.summary.content}
-          isConfirmed={store.worldBlocks.summary.isConfirmed}
-          onChange={(p) => patchBlock('summary', p)}
-          emptyHint="Open medieval fantasy sandbox. Anyone is playable. Tone shifts based on player status."
-        />
-        <ProseBlock
-          title="Confirmed world details"
-          body={store.worldBlocks.details.content}
-          isConfirmed={store.worldBlocks.details.isConfirmed}
-          onChange={(p) => patchBlock('details', p)}
-          emptyHint="Spellcasting exists. Mythical creatures exist. Reputation is tracked globally and locally."
-        />
+        <ProseBlock title="What this world is" body={store.worldBlocks.summary.content} isConfirmed={store.worldBlocks.summary.isConfirmed} onChange={(p) => patchBlock('summary', p)} emptyHint="An open medieval fantasy sandbox. The player can be anyone. Tone shifts based on status." />
+        <ProseBlock title="Confirmed details" body={store.worldBlocks.details.content} isConfirmed={store.worldBlocks.details.isConfirmed} onChange={(p) => patchBlock('details', p)} emptyHint="Spellcasting exists. Mythical creatures exist. Reputation is tracked globally and locally." />
       </div>
 
       <SectionMark>Geography</SectionMark>
       <div style={{ display: 'grid', gap: 18, gridTemplateColumns: 'repeat(auto-fit, minmax(380px, 1fr))' }}>
         {[
-          ['cities', 'Major cities and towns', 'Pending the physical map.'],
-          ['mountains', 'Mountains', 'Where, how high, who lives in them.'],
-          ['rivers', 'Rivers', 'Which way they flow, what they water, what they cost to cross.'],
-          ['forests', 'Forests', 'Old growth, hunting reserve, who owns them.'],
-          ['magicalZones', 'Magical zones &amp; anomalies', 'Veilborn enclaves, drained leylines, places to avoid.'],
-          ['coastline', 'Coastline', 'Ports, free cities, what the sea takes.'],
+          ['cities',       'Cities and towns',      'Major settlements, their character, who controls them.'],
+          ['mountains',    'Mountains',              'Location, scale, who lives in them.'],
+          ['rivers',       'Rivers',                 'Where they flow, what they feed, what they cost to cross.'],
+          ['forests',      'Forests',                'Old growth, hunting grounds, who claims them.'],
+          ['magicalZones', 'Magical zones',          'Veilborn enclaves, drained leylines, places to avoid.'],
+          ['coastline',    'Coastline',              'Ports, free cities, what the sea trades.'],
         ].map(([key, title, hint]) => (
-          <ProseBlock
-            key={key}
-            title={title}
-            body={store.worldBlocks[key].content}
-            isConfirmed={store.worldBlocks[key].isConfirmed}
-            onChange={(p) => patchBlock(key, p)}
-            emptyHint={hint}
-          />
+          <ProseBlock key={key} title={title} body={store.worldBlocks[key].content} isConfirmed={store.worldBlocks[key].isConfirmed} onChange={(p) => patchBlock(key, p)} emptyHint={hint} />
         ))}
       </div>
 
-      <SectionMark>World rules</SectionMark>
-      <ProseBlock
-        title="Fundamental truths"
-        body={store.worldBlocks.rules.content}
-        isConfirmed={store.worldBlocks.rules.isConfirmed}
-        onChange={(p) => patchBlock('rules', p)}
-        emptyHint="Magic exists. Mythical creatures roam. Reputation is tracked. The player can rise or fall. Wars can be started, joined, or ended by the player."
-      />
+      <SectionMark>World Rules</SectionMark>
+      <ProseBlock title="Fundamental truths" body={store.worldBlocks.rules.content} isConfirmed={store.worldBlocks.rules.isConfirmed} onChange={(p) => patchBlock('rules', p)} emptyHint="Magic exists. Mythical creatures roam. Reputation is tracked. The player can rise or fall in any direction. Wars can be started, joined, or ended." />
     </Section>
   );
 }

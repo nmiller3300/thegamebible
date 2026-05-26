@@ -99,7 +99,7 @@ function SettingsSection({ navigate }) {
             </div>
             <StatusPill status={store.projectSettings.mapStatus === 'uploaded' ? 'confirmed' : 'pending'} />
           </div>
-          <p>The World &amp; Geography section reads this flag to decide whether to show the placeholder frame or the live map.</p>
+          <p>Toggle this when White's map is ready to upload.</p>
           <div className="row" style={{ justifyContent: 'flex-end', marginTop: 12 }}>
             <button className="btn on-paper primary" onClick={toggleMap}>
               {store.projectSettings.mapStatus === 'uploaded' ? 'Mark as pending' : 'Mark as uploaded'}
