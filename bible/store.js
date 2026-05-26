@@ -81,6 +81,7 @@
     loreEvents: [],
     loreMyths: { content:'', isConfirmed:false },
     loreLost:  { content:'', isConfirmed:false },
+    economyEntries: [],
     economyBlocks: {
       currency:   { rows:[], isConfirmed:false },
       tradeGoods: { rows:[], isConfirmed:false },
@@ -253,7 +254,10 @@
       socCls, socBlk,
       artTiers, arts,
       dlog, threads, replies, act,
-    ] = await Promise.all([
+    ] = // load with error handling
+    const safeGet = async (tbl) => { try { const {data} = await db.from(tbl).select("*"); return mapRows(data); } catch(e) { console.warn("fetch failed:", tbl, e); return []; } };
+    const safeSingle = async (tbl) => { try { const {data} = await db.from(tbl).select("*").maybeSingle(); return data ? toCamel(data) : null; } catch(e) { console.warn("single failed:", tbl, e); return null; } };
+    const [settingsRes, brainRes, bCats, bEntries, bSpecies, npcArch, chars, facs, tens, magic, regions, wBlocks, eras, events, lBlocks, eCurr, eGoods, eBlocks, milStr, milBlk, socCls, socBlk, artTiers, arts, dlog, threads, replies, act] = await Promise.all([
       db.from('project_settings').select('*').single(),
       db.from('the_brain').select('*').single(),
       fetchTable('bestiary_categories'), fetchTable('bestiary_entries'), fetchTable('bestiary_species'),
