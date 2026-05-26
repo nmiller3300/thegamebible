@@ -1,243 +1,201 @@
-/* Game Bible — sections/artifacts.jsx */
+/* Game Bible — sections/artifacts.jsx — Full dossier per artifact */
 const Ya = window.YSTC;
 
-const ARTIFACT_TYPES = ['Weapon','Armor','Accessory','Tome','Relic','Other'];
+const ARTIFACT_TYPES = ['Weapon','Armor','Accessory','Tome','Relic','Crown','Instrument','Other'];
+const TIER_COLOR = { Common:'var(--moss)', Rare:'oklch(0.65 0.14 75)', Legendary:'var(--imperial-soft)', 'Divine / Forbidden':'oklch(0.55 0.18 30)' };
+
+function ArtifactCard({ entry, onClick, onEdit, onDelete }) {
+  const tierColor = TIER_COLOR[entry.tier] || 'var(--ash)';
+  return (
+    <div className="creature-card" onClick={onClick} title="Open registry">
+      <div className="creature-card-image">
+        {entry.imageUrl
+          ? <img src={entry.imageUrl} alt={entry.name} />
+          : <div className="creature-card-placeholder"><Icon name="star" size={28} stroke={1.2}/><div>Image pending</div></div>}
+        <div className="creature-card-threat" style={{ background:tierColor+'22', color:tierColor, borderColor:tierColor+'55' }}>
+          {entry.tier || '—'}
+        </div>
+      </div>
+      <div className="creature-card-body">
+        <div className="creature-card-category">{entry.artifactType || 'Unknown type'}</div>
+        <h3 className="creature-card-name">{entry.name || 'Unnamed'}</h3>
+        <div className="creature-card-meta">
+          <span>{entry.origin || '—'}</span>
+          <span style={{ opacity:0.4 }}>·</span>
+          <span>{entry.currentLocation || '—'}</span>
+        </div>
+        {entry.appearance && <p className="creature-card-excerpt">{entry.appearance.slice(0,90)}{entry.appearance.length>90?'…':''}</p>}
+      </div>
+      <div className="creature-card-actions" onClick={(e) => e.stopPropagation()}>
+        <button className="btn small on-paper" onClick={onEdit}><Icon name="pencil" size={10}/></button>
+        <button className="btn small on-paper danger" onClick={onDelete}><Icon name="trash" size={10}/></button>
+      </div>
+    </div>
+  );
+}
+
+function ArtifactDossier({ entry, onBack, onEdit }) {
+  const [activeTab, setActiveTab] = useState('description');
+  const tierColor = TIER_COLOR[entry.tier] || 'var(--ash)';
+  const tabs = [
+    { id:'description', label:'Description' },
+    { id:'powers',      label:'Powers' },
+    { id:'history',     label:'History' },
+    { id:'lore',        label:'Lore' },
+  ];
+  return (
+    <div className="dossier-shell">
+      <div className="dossier-topbar">
+        <button className="dossier-back" onClick={onBack}><Icon name="chevronLeft" size={14}/> Artifacts</button>
+        <span className="dossier-crumbs">{entry.artifactType||'Relic'} <span>/</span> {entry.name}</span>
+        <div style={{ flex:1 }}></div>
+        <div className="dossier-meta">
+          <div><span>tier</span>{entry.tier||'—'}</div>
+          <div><span>origin</span>{entry.origin||'—'}</div>
+          <div><span>updated</span>{Ya.formatStamp(entry.updatedAt).split('·')[0].trim()}</div>
+        </div>
+        <div className="dossier-status-pill" style={{ '--tc': tierColor }}>{entry.tier||'Unknown tier'}</div>
+        <button className="btn small" onClick={onEdit}><Icon name="pencil" size={11}/> Edit</button>
+      </div>
+      <div className="dossier-title-block">
+        <div>
+          <div className="dossier-kicker"><span className="dossier-kicker-bar"></span>Relic Registry · {entry.artifactType||'Unknown'}</div>
+          <h1 className="dossier-h1">{entry.name}</h1>
+          {entry.origin && <div className="dossier-latin">— Origin: {entry.origin} —</div>}
+        </div>
+        <div className="dossier-ids">
+          <div><span>type</span>{entry.artifactType||'—'}</div>
+          <div><span>tier</span>{entry.tier||'—'}</div>
+          <div><span>origin</span>{entry.origin||'—'}</div>
+          <div><span>location</span>{entry.currentLocation||'—'}</div>
+        </div>
+      </div>
+      <div className="dossier-hero">
+        <div className="dossier-stage">
+          <div className="dossier-stage-label"><span>Plate I · Reference image</span><span style={{ opacity:0.5 }}>Relic Registry</span></div>
+          <ImageSlot value={entry.imageUrl||''} onChange={(url) => Ya.updateEntry('artifacts', entry.id, {imageUrl:url})} height={360} label="Object photograph — neutral background, full view" />
+          {entry.currentLocation && <div className="dossier-ruler"><span>Current location:</span> {entry.currentLocation}</div>}
+        </div>
+        <div className="dossier-spec">
+          {[['Type',entry.artifactType||'—'],['Tier',entry.tier||'—'],['Origin',entry.origin||'—'],['Location',entry.currentLocation||'—']].map(([k,v]) => (
+            <div key={k} className="dossier-spec-row"><span className="dossier-spec-k">{k}</span><span className="dossier-spec-v" style={{ fontSize:16 }}>{v}</span></div>
+          ))}
+          {entry.costCurse && <div className="dossier-verdict"><span style={{ display:'block', fontFamily:'var(--mono)', fontSize:10.5, letterSpacing:'0.2em', textTransform:'uppercase', color:'var(--imperial)', fontStyle:'normal', marginBottom:8 }}>Cost / Curse</span>{entry.costCurse}</div>}
+        </div>
+      </div>
+      <div className="dossier-deepdive">
+        <div className="section-mark" style={{ marginBottom:18 }}>Registry Study</div>
+        <div className="tabs">
+          {tabs.map((t,i) => <button key={t.id} role="tab" aria-selected={activeTab===t.id} onClick={() => setActiveTab(t.id)}><span className="num">0{i+1}</span>{t.label}</button>)}
+        </div>
+        <div style={{ paddingTop:32 }}>
+          {activeTab==='description' && (
+            <div className="dossier-tab-panel">
+              <div className="dossier-prose-col">
+                <div className="dossier-eyebrow">§ 01 · Physical Description</div>
+                <div className="dossier-drop-text">{entry.appearance ? entry.appearance.split(/\n+/).map((p,i)=><p key={i}>{p}</p>) : <p className="muted italic">No description recorded.</p>}</div>
+              </div>
+              <div className="dossier-aside-col">
+                <div className="dossier-aside-card">
+                  <div className="dossier-aside-label">Registry entry</div>
+                  {[['Type',entry.artifactType],['Tier',entry.tier],['Origin',entry.origin],['Location',entry.currentLocation]].map(([k,v])=> v && <div key={k} style={{ marginBottom:12 }}><div style={{ fontFamily:'var(--mono)', fontSize:10, letterSpacing:'0.16em', textTransform:'uppercase', color:'var(--ink-mute)', marginBottom:3 }}>{k}</div><div style={{ color:'var(--ink)', fontSize:15 }}>{v}</div></div>)}
+                </div>
+              </div>
+            </div>
+          )}
+          {activeTab==='powers' && (
+            <div className="paper-card">
+              <div className="dossier-eyebrow">§ 02 · Powers & Abilities</div>
+              {entry.powerAbility ? <div className="dossier-drop-text" style={{ marginTop:14 }}>{entry.powerAbility.split(/\n+/).map((p,i)=><p key={i}>{p}</p>)}</div> : <p className="muted italic">No powers recorded.</p>}
+              {entry.costCurse && <><div className="dossier-eyebrow" style={{ marginTop:24 }}>Cost / Curse</div>{entry.costCurse.split(/\n+/).map((p,i)=><p key={i} style={{ color:'var(--ink-2)', marginBottom:12 }}>{p}</p>)}</>}
+            </div>
+          )}
+          {activeTab==='history' && (
+            <div className="paper-card">
+              <div className="dossier-eyebrow">§ 03 · History & Provenance</div>
+              {entry.origin ? <><div style={{ marginTop:14 }}><div style={{ fontFamily:'var(--mono)', fontSize:10.5, letterSpacing:'0.16em', textTransform:'uppercase', color:'var(--ink-mute)', marginBottom:8 }}>Origin</div><p style={{ color:'var(--ink-2)' }}>{entry.origin}</p></div></> : null}
+              {entry.currentLocation ? <><div style={{ marginTop:18 }}><div style={{ fontFamily:'var(--mono)', fontSize:10.5, letterSpacing:'0.16em', textTransform:'uppercase', color:'var(--ink-mute)', marginBottom:8 }}>Current location</div><p style={{ color:'var(--ink-2)' }}>{entry.currentLocation}</p></div></> : null}
+              {!entry.origin && !entry.currentLocation && <p className="muted italic">No history on record.</p>}
+            </div>
+          )}
+          {activeTab==='lore' && (
+            <div className="paper-card">
+              <div className="dossier-eyebrow">§ 04 · Lore & Legend</div>
+              {entry.lore ? <div className="dossier-drop-text" style={{ marginTop:14 }}>{entry.lore.split(/\n+/).map((p,i)=><p key={i}>{p}</p>)}</div> : <p className="muted italic">No lore recorded.</p>}
+            </div>
+          )}
+        </div>
+      </div>
+      <div className="dossier-footer">
+        <span>Relic Registry · {entry.artifactType} · {entry.name}</span>
+        <span className="dossier-footer-sigil">— catalogued under the seal of the Concept Studio —</span>
+        <Attrib entry={entry} />
+      </div>
+    </div>
+  );
+}
+
+function ArtifactForm({ entry, onClose, onSave }) {
+  const store = Ya.useStore();
+  const tierOptions = store.artifactTiers.map(t => t.name);
+  const init = { name:'', artifactType:'', tier:'', appearance:'', powerAbility:'', origin:'', currentLocation:'', lore:'', costCurse:'', imageUrl:'', status:'pending', ...(entry||{}) };
+  const [d, setD] = useState(init);
+  useEffect(() => { setD({ ...init, ...(entry||{}) }); }, [entry]);
+  function set(k,v) { setD(p=>({...p,[k]:v})); }
+  return (
+    <Modal open onClose={onClose}>
+      <div className="modal-head"><div><h2>{entry?'Edit artifact':'Add an artifact'}</h2><div className="tiny-label" style={{ marginTop:6 }}>Artifacts & Relics</div></div><div className="doc-code">RELIC-001</div></div>
+      <div className="field-row"><Field label="Name"><TextInput value={d.name} onChange={(v)=>set('name',v)}/></Field><Field label="Type"><Select value={d.artifactType} onChange={(v)=>set('artifactType',v)} options={['',...ARTIFACT_TYPES]}/></Field></div>
+      <Field label="Tier"><Select value={d.tier} onChange={(v)=>set('tier',v)} options={['',...tierOptions]}/></Field>
+      <Field label="Appearance"><TextArea value={d.appearance} onChange={(v)=>set('appearance',v)} rows={3}/></Field>
+      <Field label="Powers & abilities"><TextArea value={d.powerAbility} onChange={(v)=>set('powerAbility',v)} rows={3}/></Field>
+      <Field label="Cost or curse"><TextArea value={d.costCurse} onChange={(v)=>set('costCurse',v)} rows={2}/></Field>
+      <div className="field-row"><Field label="Origin"><TextInput value={d.origin} onChange={(v)=>set('origin',v)}/></Field><Field label="Current location"><TextInput value={d.currentLocation} onChange={(v)=>set('currentLocation',v)}/></Field></div>
+      <Field label="Lore & legend"><TextArea value={d.lore} onChange={(v)=>set('lore',v)} rows={3}/></Field>
+      <Field label="Image"><ImageSlot value={d.imageUrl} onChange={(v)=>set('imageUrl',v)} height={180}/></Field>
+      <div className="modal-actions"><ConfirmedToggle value={d.status==='confirmed'} onChange={(b)=>set('status',b?'confirmed':'pending')}/><div className="right"><button className="btn on-paper ghost" onClick={onClose}>Cancel</button><button className="btn on-paper primary" disabled={!d.name?.trim()} onClick={()=>onSave(d)}>{entry?'Save':'Add artifact'}</button></div></div>
+    </Modal>
+  );
+}
 
 function ArtifactsSection() {
   const store = Ya.useStore();
+  const [view, setView] = useState('list');
+  const [selectedId, setSelectedId] = useState(null);
   const [editing, setEditing] = useState(null);
   const [deleting, setDeleting] = useState(null);
   const [editingTiers, setEditingTiers] = useState(false);
-  const [filter, setFilter] = useState('all');
-
-  const tierNames = store.artifactTiers.map((t) => t.name);
-
+  const selectedEntry = selectedId ? store.artifacts.find(e=>e.id===selectedId) : null;
+  function openDossier(e) { setSelectedId(e.id); setView('dossier'); }
+  function closeDossier() { setView('list'); setSelectedId(null); }
   function save(data) {
-    if (editing && editing.id) {
-      Ya.updateEntry('artifacts', editing.id, data);
-      Ya.logActivity('Artifacts', 'edited', data.name);
-    } else {
-      const saved = Ya.addEntry('artifacts', data);
-      Ya.logActivity('Artifacts', 'added', saved.name);
-    }
+    if (editing&&editing.id) { Ya.updateEntry('artifacts',editing.id,data); Ya.logActivity('Artifacts','edited',data.name); }
+    else { Ya.addEntry('artifacts',data); Ya.logActivity('Artifacts','added',data.name); }
     setEditing(null);
   }
-  function saveTiers(rows) {
-    Ya.setStore({ artifactTiers: rows });
-    Ya.logActivity('Artifacts', 'updated', 'tier system');
-    setEditingTiers(false);
-  }
-
-  const visible = store.artifacts.filter((a) => {
-    if (filter === 'all') return true;
-    if (filter === 'lost') return a.currentLocation && /unknown|lost/i.test(a.currentLocation);
-    return a.tier === filter;
-  });
-  const lost = store.artifacts.filter((a) => a.currentLocation && /unknown|lost/i.test(a.currentLocation));
-
+  function confirmDelete() { if(!deleting)return; Ya.deleteEntry(deleting.collection,deleting.entry.id); Ya.logActivity('Artifacts','removed',deleting.entry.name); setDeleting(null); }
+  if (view==='dossier'&&selectedEntry) return <Section><ArtifactDossier entry={selectedEntry} onBack={closeDossier} onEdit={()=>setEditing(selectedEntry)}/>{editing&&<ArtifactForm entry={editing} onClose={()=>setEditing(null)} onSave={save}/>}</Section>;
   return (
     <Section>
-      <DocHead
-        kicker="Index · Objects of power"
-        title="Artifacts &"
-        titleEm="Relics"
-        deck="From mildly enchanted to divine. The tier system is editable; every entry can carry a curse, a cost, and a current location."
-        code="RELIC-001"
-        codeMeta={{ artifacts: store.artifacts.length, lost: lost.length, tiers: store.artifactTiers.length }}
-      />
-
-      <SectionMark>Tier system · reference</SectionMark>
-      <article className="paper-card">
-        <div className="card-head">
-          <div>
-                        <h3>Confirmed tiers</h3>
-          </div>
-          <button className="btn on-paper small" onClick={() => setEditingTiers(true)}><Icon name="pencil" size={11}/> Edit tiers</button>
+      <DocHead kicker="Registry · Objects of Power" title="Artifacts &" titleEm="Relics" deck="Every significant object in Eravan. Weapons that ended dynasties. Crowns that drive their wearers mad." code="RELIC-001" codeMeta={{ artifacts: store.artifacts.length, tiers: store.artifactTiers.length }}/>
+      <div className="spread" style={{ marginBottom:22 }}>
+        <div style={{ display:'flex', gap:12 }}>
+          {store.artifactTiers.map(t=>{
+            const c = store.artifacts.filter(a=>a.tier===t.name).length;
+            return <div key={t.id} style={{ fontFamily:'var(--mono)', fontSize:10.5, letterSpacing:'0.14em', textTransform:'uppercase', color: TIER_COLOR[t.name]||'var(--ash)', opacity: c>0?1:0.4 }}>{t.name} <span style={{ opacity:0.6 }}>({c})</span></div>;
+          })}
         </div>
-        <table className="tbl">
-          <thead><tr><th style={{ width: 220 }}>Tier</th><th>Description</th></tr></thead>
-          <tbody>
-            {store.artifactTiers.map((t) => (
-              <tr key={t.id}><td className="k">{t.name}</td><td>{t.description}</td></tr>
-            ))}
-            {store.artifactTiers.length === 0 && (
-              <tr><td colSpan={2} className="empty">No tiers defined.</td></tr>
-            )}
-          </tbody>
-        </table>
-      </article>
-
-      <div className="spread" style={{ marginTop: 32, marginBottom: 18 }}>
-        <SectionMark>Artifact index</SectionMark>
-        <button className="btn primary" onClick={() => setEditing({})}><Icon name="plus" size={13}/> Add artifact</button>
-      </div>
-
-      <div className="row wrap" style={{ marginBottom: 18, gap: 6 }}>
-        <button className={'btn small ' + (filter === 'all' ? 'primary' : 'ghost')} onClick={() => setFilter('all')}>All <span style={{ opacity:.6, marginLeft: 6 }}>{store.artifacts.length}</span></button>
-        {tierNames.map((t) => {
-          const n = store.artifacts.filter((a) => a.tier === t).length;
-          return <button key={t} className={'btn small ' + (filter === t ? 'primary' : 'ghost')} onClick={() => setFilter(t)}>{t} <span style={{ opacity:.6, marginLeft: 6 }}>{n}</span></button>;
-        })}
-        <button className={'btn small ' + (filter === 'lost' ? 'primary' : 'ghost')} onClick={() => setFilter('lost')}>Lost <span style={{ opacity:.6, marginLeft: 6 }}>{lost.length}</span></button>
-      </div>
-
-      {visible.length === 0 ? (
-        <EmptyState
-          icon="grail"
-          title="No artifacts recorded yet."
-          body="Each entry supports appearance, power, origin, current location, lore, and a cost or curse. Mark current location as Unknown or Lost to surface the artifact in the Lost subsection."
-          action={<button className="btn on-paper primary" onClick={() => setEditing({})}><Icon name="plus" size={12}/> Add the first artifact</button>}
-        />
-      ) : (
-        <div style={{ display: 'grid', gap: 16, gridTemplateColumns: 'repeat(auto-fill, minmax(360px, 1fr))' }}>
-          {visible.map((a) => <ArtifactCard key={a.id} a={a} onEdit={() => setEditing(a)} onDelete={() => setDeleting(a)} />)}
+        <div className="row">
+          <button className="btn ghost small" onClick={()=>setEditingTiers(true)}><Icon name="drag" size={11}/> Tiers</button>
+          <button className="btn primary" onClick={()=>setEditing({})}><Icon name="plus" size={13}/> Add artifact</button>
         </div>
-      )}
-
-      {lost.length > 0 && filter === 'all' && (
-        <>
-          <SectionMark>Lost artifacts · potential quests</SectionMark>
-          <div style={{ display: 'grid', gap: 14, gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))' }}>
-            {lost.map((a) => (
-              <article key={a.id} className="paper-card tight" onClick={() => setEditing(a)} style={{ cursor: 'pointer' }}>
-                <div className="eyebrow muted">{a.tier || 'Untiered'}</div>
-                <h4 style={{ fontStyle: 'italic', fontWeight: 500, fontSize: 18, margin: '4px 0' }}>{a.name}</h4>
-                <p style={{ fontSize: 13.5, margin: 0, color: 'var(--ink-mute)' }}>Last seen: {a.currentLocation}</p>
-              </article>
-            ))}
-          </div>
-        </>
-      )}
-
-      {editing !== null && (
-        <ArtifactForm
-          open={true}
-          entry={editing.id ? editing : null}
-          tiers={tierNames}
-          onClose={() => setEditing(null)}
-          onSave={save}
-        />
-      )}
-      {editingTiers && (
-        <TiersEditor open={true} tiers={store.artifactTiers} onClose={() => setEditingTiers(false)} onSave={saveTiers} />
-      )}
-      <ConfirmDialog
-        open={!!deleting}
-        title="Delete this artifact?"
-        body={deleting ? `\u201C${deleting.name}\u201D will be removed.` : ''}
-        onCancel={() => setDeleting(null)}
-        onConfirm={() => { Ya.deleteEntry('artifacts', deleting.id); Ya.logActivity('Artifacts', 'removed', deleting.name); setDeleting(null); }}
-      />
+      </div>
+      {store.artifacts.length===0
+        ? <EmptyState dark title="No artifacts registered." body="Every significant object in the world gets a full registry entry." action={<button className="btn primary" onClick={()=>setEditing({})}><Icon name="plus" size={13}/> Add the first artifact</button>}/>
+        : <div className="creature-grid">{store.artifacts.map(e=><ArtifactCard key={e.id} entry={e} onClick={()=>openDossier(e)} onEdit={()=>setEditing(e)} onDelete={()=>setDeleting({collection:'artifacts',entry:e})}/>)}</div>}
+      {editing&&<ArtifactForm entry={editing.id?editing:null} onClose={()=>setEditing(null)} onSave={save}/>}
+      {deleting&&<Modal open onClose={()=>setDeleting(null)}><ConfirmDialog title={`Remove ${deleting.entry.name}?`} body="This permanently deletes this registry entry." onConfirm={confirmDelete} onCancel={()=>setDeleting(null)}/></Modal>}
     </Section>
   );
 }
-
-function ArtifactCard({ a, onEdit, onDelete }) {
-  return (
-    <article className={'paper-card' + (a.status === 'pending' ? ' tbd' : '')}>
-      <div className="card-head">
-        <div>
-          <div className="eyebrow muted">{a.tier || 'Untiered'} · {a.artifactType || '—'}</div>
-          <h3>{a.name}</h3>
-        </div>
-        <StatusPill status={a.status || 'confirmed'} />
-      </div>
-      <div style={{ marginBottom: 14 }}><ImageSlot value={a.imageUrl || ''} onChange={(url) => { Ya.updateEntry('artifacts', a.id, {imageUrl: url}); }} height={160} /></div>
-      {a.appearance && <Field2 label="Appearance" body={a.appearance} />}
-      {a.powerAbility && <Field2 label="Power" body={a.powerAbility} />}
-      <div className="meta-row" style={{ marginTop: 10 }}>
-        <div className="k">Origin</div>          <div className={'v ' + (a.origin ? '' : 'empty')}>{a.origin || '—'}</div>
-        <div className="k">Current location</div><div className={'v ' + (a.currentLocation ? '' : 'empty')}>{a.currentLocation || '—'}</div>
-      </div>
-      {a.lore && <Field2 label="Lore" body={a.lore} />}
-      {a.costCurse && (
-        <div style={{ marginTop: 10, padding: '10px 12px', background: 'oklch(0.45 0.135 27 / 0.07)', borderLeft: '2px solid var(--imperial)' }}>
-          <div className="tiny-label" style={{ color: 'var(--imperial)' }}>Cost · curse</div>
-          <p style={{ fontSize: 14.5, margin: '4px 0 0', color: 'var(--ink)' }}>{a.costCurse}</p>
-        </div>
-      )}
-      <div className="spread" style={{ marginTop: 14, paddingTop: 12, borderTop: '1px dashed var(--rule)' }}>
-        <Attrib entry={a} />
-        <div className="row">
-          <button className="btn small on-paper" onClick={onEdit}><Icon name="pencil" size={11}/> Edit</button>
-          <button className="btn small on-paper danger" onClick={onDelete}><Icon name="trash" size={11}/> Delete</button>
-        </div>
-      </div>
-    </article>
-  );
-}
-
-function ArtifactForm({ open, entry, tiers, onClose, onSave }) {
-  const [d, setD] = useState({});
-  useEffect(() => {
-    setD({
-      name:'', artifactType: ARTIFACT_TYPES[0], tier: tiers[0] || '',
-      appearance:'', powerAbility:'', origin:'', currentLocation:'', lore:'',
-      costCurse:'', imageUrl:'', status:'confirmed', ...(entry || {}),
-    });
-  }, [entry, open, tiers]);
-  function set(k, v) { setD((p) => ({ ...p, [k]: v })); }
-  return (
-    <Modal open={open} onClose={onClose} width="wide">
-      <div className="modal-head">
-        <div><h2>{entry ? 'Edit artifact' : 'Add an artifact'}</h2><div className="tiny-label" style={{ marginTop:6 }}>Artifacts · entry</div></div>
-        <div className="doc-code">RELIC-001 · ENTRY</div>
-      </div>
-      <div className="field-row three">
-        <Field label="Name"><TextInput value={d.name} onChange={(v) => set('name', v)} placeholder="The Crown of Ash" /></Field>
-        <Field label="Type"><Select value={d.artifactType} onChange={(v) => set('artifactType', v)} options={ARTIFACT_TYPES} /></Field>
-        <Field label="Tier"><Select value={d.tier} onChange={(v) => set('tier', v)} options={tiers} /></Field>
-      </div>
-      <Field label="Appearance"><TextArea value={d.appearance} onChange={(v) => set('appearance', v)} rows={2} /></Field>
-      <Field label="Power and ability"><TextArea value={d.powerAbility} onChange={(v) => set('powerAbility', v)} rows={3} /></Field>
-      <div className="field-row">
-        <Field label="Origin"><TextInput value={d.origin} onChange={(v) => set('origin', v)} /></Field>
-        <Field label="Current location" hint="Type Unknown or Lost to surface this in the Lost Artifacts subsection.">
-          <TextInput value={d.currentLocation} onChange={(v) => set('currentLocation', v)} placeholder="Lost · last seen in the Ash Hills" />
-        </Field>
-      </div>
-      <Field label="Lore and legend"><TextArea value={d.lore} onChange={(v) => set('lore', v)} rows={3} /></Field>
-      <Field label="Cost or curse"><TextArea value={d.costCurse} onChange={(v) => set('costCurse', v)} rows={2} /></Field>
-      <Field label="Image"><ImageSlot value={d.imageUrl || ''} onChange={(v) => set('imageUrl', v)} height={180} /></Field>
-      <div className="modal-actions">
-        <ConfirmedToggle value={d.status === 'confirmed'} onChange={(b) => set('status', b ? 'confirmed' : 'pending')} />
-        <div className="right">
-          <button className="btn on-paper ghost" onClick={onClose}>Cancel</button>
-          <button className="btn on-paper primary" disabled={!d.name?.trim()} onClick={() => onSave(d)}>{entry ? 'Save changes' : 'Add artifact'}</button>
-        </div>
-      </div>
-    </Modal>
-  );
-}
-
-function TiersEditor({ open, tiers, onClose, onSave }) {
-  const [list, setList] = useState(tiers);
-  useEffect(() => { setList(tiers); }, [tiers]);
-  function setRow(i, k, v) { const next = list.slice(); next[i] = { ...next[i], [k]: v }; setList(next); }
-  function add() { setList([...list, { id: Ya.uid(), name:'', description:'' }]); }
-  function remove(i) { setList(list.filter((_, idx) => idx !== i)); }
-  return (
-    <Modal open={open} onClose={onClose}>
-      <div className="modal-head">
-        <div><h2>Edit artifact tiers</h2><div className="tiny-label" style={{ marginTop:6 }}>Reorder, rename, or remove</div></div>
-        <div className="doc-code">RELIC-001 · TIERS</div>
-      </div>
-      <div className="stack-sm">
-        {list.map((t, i) => (
-          <div key={t.id} style={{ display: 'grid', gridTemplateColumns: '1fr 2fr auto', gap: 8 }}>
-            <input type="text" value={t.name} onChange={(e) => setRow(i, 'name', e.target.value)} placeholder="Tier name" />
-            <input type="text" value={t.description} onChange={(e) => setRow(i, 'description', e.target.value)} placeholder="Description" />
-            <button className="btn on-paper small danger" onClick={() => remove(i)}>Remove</button>
-          </div>
-        ))}
-        <button className="btn on-paper small" onClick={add}><Icon name="plus" size={11}/> Add tier</button>
-      </div>
-      <div className="modal-actions">
-        <button className="btn on-paper ghost" onClick={onClose}>Cancel</button>
-        <button className="btn on-paper primary" onClick={() => onSave(list.filter((r) => r.name.trim()))}>Save tiers</button>
-      </div>
-    </Modal>
-  );
-}
-
 window.ArtifactsSection = ArtifactsSection;

@@ -174,20 +174,6 @@ function CreatureDossier({ entry, onBack, onEdit }) {
           )}
         </div>
       </div>
-
-      {/* Orthographic strip — 4 plates */}
-      <div className="dossier-ortho">
-        {[
-          { key:'imgFront',  label:'Plate II',  sub:'Front' },
-          { key:'imgThreeQ', label:'Plate III', sub:'Three-quarter' },
-          { key:'imgDetail', label:'Plate IV',  sub:'Detail study' },
-          { key:'imgScale',  label:'Plate V',   sub:'Scale reference' },
-        ].map(({ key, label, sub }) => (
-          <div key={key} className="dossier-ortho-card">
-            <div className="dossier-ortho-label">
-              <span>{label}</span>
-              <b>{sub}</b>
-            </div>
             <ImageSlot
               value={meta[key] || ''}
               onChange={(url) => updateMeta({ [key]: url })}
@@ -300,12 +286,7 @@ function CreatureDossier({ entry, onBack, onEdit }) {
                   );
                 })}
               </div>
-              {entry.modelFile && entry.modelFile.fileName && (
-                <div style={{ marginTop: 24, padding: '16px 20px', background:'oklch(0.55 0.085 145 / 0.08)', borderLeft:'2px solid var(--moss)', borderRadius:2 }}>
-                  <div style={{ fontFamily:'var(--mono)', fontSize:10.5, letterSpacing:'0.16em', textTransform:'uppercase', color:'var(--moss)', marginBottom:6 }}>3D Model attached</div>
-                  <div style={{ color:'var(--ink)', fontFamily:'var(--serif)', fontSize:16 }}>{entry.modelFile.fileName}</div>
-                </div>
-              )}
+
             </div>
           )}
 
@@ -427,8 +408,8 @@ function CreatureForm({ entry, onClose, onSave }) {
       <Field label="In-world appearances (empire symbolism, cultural references)">
         <TextArea value={metaDraft.inWorldAppearances} onChange={(v) => setMetaDraft({...metaDraft, inWorldAppearances:v})} rows={3} />
       </Field>
-      <Field label="Primary image">
-        <ImageSlot value={d.imageUrl || ''} onChange={(v) => set('imageUrl', v)} height={160} />
+      <Field label="Concept image">
+        <ImageSlot value={d.imageUrl || ''} onChange={(v) => set('imageUrl', v)} height={200} />
       </Field>
 
       <div className="modal-actions">
