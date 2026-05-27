@@ -137,7 +137,7 @@ function Modal({ open, onClose, children, width = 'normal' }) {
 }
 
 // ── Confirm dialog ───────────────────────────────────────────────────────
-function ConfirmDialog({ open, title, body, confirmLabel = 'Delete', danger = true, onCancel, onConfirm, requireType }) {
+function ConfirmDialog({ open = true, title, body, confirmLabel = 'Delete', danger = true, onCancel, onConfirm, requireType }) {
   const [typed, setTyped] = useState('');
   useEffect(() => { if (!open) setTyped(''); }, [open]);
   if (!open) return null;
