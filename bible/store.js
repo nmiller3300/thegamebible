@@ -449,16 +449,30 @@
   async function initSession() {
     try {
       var r = await db.auth.getSession();
+
       if (r.data && r.data.session && r.data.session.user) {
         var u = r.data.session.user;
         var meta = u.user_metadata || {};
+
         store.sessionUserId = u.id;
-        store.sessionUser = { id: u.id, email: u.email, displayName: meta.display_name || u.email.split('@')[0], role: meta.role || 'designer' };
-        notify();
-        await loadAllData();
-        subscribeRealtime();
+        store.sessionUser = {
+          id: u.id,
+          email: u.email,
+          displayName: meta.display_name || u.email.split('@')[0],
+          role: meta.role || 'designer'
+        };
       }
-    } catch(e) { console.error('initSession error', e); }
+
+      // ALWAYS load data even if no authenticated session exists
+      await loadAllData();
+
+      // Realtime can still subscribe anonymously
+      subscribeRealtime();
+
+      notify();
+    } catch(e) {
+      console.error('initSession error', e);
+    }
   }
 
   function formatStamp(iso) {
