@@ -1,0 +1,19 @@
+/* Loading overlay shown while Supabase data fetches on login */
+.ystc-loading {
+  position: fixed; inset: 0;
+  background: var(--bg);
+  display: flex; align-items: center; justify-content: center;
+  z-index: 9999;
+  font-family: var(--mono);
+  font-size: 12px;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: var(--ash);
+}
+.ystc-loading .dot {
+  display: inline-block;
+  animation: blink 1.2s infinite;
+}
+.ystc-loading .dot:nth-child(2) { animation-delay: 0.2s; }
+.ystc-loading .dot:nth-child(3) { animation-delay: 0.4s; }
+@keyframes blink { 0%,80%,100%{opacity:0} 40%{opacity:1} }
