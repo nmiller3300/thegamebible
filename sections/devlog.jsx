@@ -188,3 +188,4 @@ function DecisionForm({ entry, onClose, onSave }) {
 }
 
 window.DevlogSection = DevlogSection;
+window.DevLogSection = DevlogSection;
