@@ -162,6 +162,9 @@
     militaryStructure: 'military_structure', socialClasses: 'social_classes',
     artifactTiers: 'artifact_tiers', bestiaryCategories: 'bestiary_categories',
     npcArchetypes: 'npc_archetypes',
+    decisions: 'decisions',
+    rumours: 'rumours',
+    calendarEntries: 'calendar_entries',
   };
 
   function addEntry(collection, data) {

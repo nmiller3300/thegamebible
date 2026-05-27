@@ -143,8 +143,8 @@ function CreatureDossier({ entry, onBack, onEdit }) {
             <span style={{ opacity: 0.5 }}>Ref · For Modeling</span>
           </div>
           <ImageSlot
-            value={meta.imgMain || entry.imageUrl || ''}
-            onChange={(url) => updateMeta({ imgMain: url })}
+            value={entry.imageUrl || ''}
+            onChange={(url) => { Ybe.updateEntry('bestiaryEntries', entry.id, { imageUrl: url }); Ybe.logActivity('Bestiary', 'updated image', entry.name); }}
             height={420}
             fit="contain"
             label="Primary reference — side profile, neutral stance, plain background"
