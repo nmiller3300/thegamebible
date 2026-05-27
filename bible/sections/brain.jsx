@@ -206,14 +206,7 @@ function BrainEditor({ open, value, onClose }) {
   function setList(k, list) { setDraft((d) => ({ ...d, [k]: list })); }
 
   function save() {
-    Yb.setStore((s) => ({
-      ...s,
-      theBrain: {
-        content: draft,
-        updatedBy: Yb.currentDisplayName(),
-        updatedAt: Yb.nowISO(),
-      },
-    }));
+    Yb.saveBrain(draft);
     Yb.logActivity('The Brain', 'sealed', 'an updated version of the founding document');
     onClose();
   }
