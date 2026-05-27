@@ -20,7 +20,7 @@ const PIPELINE_STEPS = [
 function getMeta(e) { return (e && e.metadata) ? (typeof e.metadata === 'string' ? JSON.parse(e.metadata) : e.metadata) : {}; }
 
 // ── Creature card for list view ───────────────────────────────────────────
-function CreatureCard({ entry, onClick, onEdit, onDelete }) {
+function CreatureCard({ entry, onClick, onEdit }) {
   const meta = getMeta(entry);
   const mainImg = meta.imgMain || entry.imageUrl || '';
   const threatColor = THREAT_COLOR[entry.threatLevel] || 'var(--ash)';
@@ -54,7 +54,6 @@ function CreatureCard({ entry, onClick, onEdit, onDelete }) {
       </div>
       <div className="creature-card-actions" onClick={(e) => e.stopPropagation()}>
         <button className="btn small on-paper" onClick={onEdit}><Icon name="pencil" size={10}/></button>
-        <button className="btn small on-paper danger" onClick={onDelete}><Icon name="trash" size={10}/></button>
       </div>
     </div>
   );
@@ -338,7 +337,7 @@ function RestrictionsEditor({ value, onChange }) {
 }
 
 // ── Creature form (add / edit) ────────────────────────────────────────────
-function CreatureForm({ entry, onClose, onSave }) {
+function CreatureForm({ entry, onClose, onSave, onDelete }) {
   const store = Ybe.useStore();
   const meta = getMeta(entry);
   const init = {
@@ -406,7 +405,14 @@ function CreatureForm({ entry, onClose, onSave }) {
       </Field>
 
       <div className="modal-actions">
-        <ConfirmedToggle value={d.status === 'confirmed'} onChange={(b) => set('status', b ? 'confirmed' : 'pending')} />
+        <div className="row" style={{ gap: 12, alignItems: 'center' }}>
+          <ConfirmedToggle value={d.status === 'confirmed'} onChange={(b) => set('status', b ? 'confirmed' : 'pending')} />
+          {onDelete && entry && (
+            <button className="btn on-paper danger ghost small" onClick={onDelete}>
+              <Icon name="trash" size={11}/> Delete
+            </button>
+          )}
+        </div>
         <div className="right">
           <button className="btn on-paper ghost" onClick={onClose}>Cancel</button>
           <button className="btn on-paper primary" disabled={!d.name?.trim()} onClick={save}>{entry ? 'Save changes' : 'Add creature'}</button>
@@ -509,7 +515,12 @@ function BestiarySection() {
           onEdit={() => setEditing(selectedEntry)}
         />
         {editing && (
-          <CreatureForm entry={editing} onClose={() => setEditing(null)} onSave={saveCreature} />
+          <CreatureForm
+            entry={editing}
+            onClose={() => setEditing(null)}
+            onSave={saveCreature}
+            onDelete={editing.id ? () => { setEditing(null); setDeleting({ collection:'bestiaryEntries', entry: editing }); } : null}
+          />
         )}
       </Section>
     );
@@ -584,7 +595,6 @@ function BestiarySection() {
                   entry={entry}
                   onClick={() => openDossier(entry)}
                   onEdit={() => setEditing(entry)}
-                  onDelete={() => setDeleting({ collection:'bestiaryEntries', entry })}
                 />
               ))}
             </div>
@@ -633,19 +643,18 @@ function BestiarySection() {
       )}
 
       {/* Forms */}
-      {editing && <CreatureForm entry={editing.id ? editing : null} onClose={() => setEditing(null)} onSave={saveCreature} />}
+      {editing && <CreatureForm entry={editing.id ? editing : null} onClose={() => setEditing(null)} onSave={saveCreature} onDelete={editing.id ? () => { setEditing(null); setDeleting({ collection:'bestiaryEntries', entry: editing }); } : null} />}
       {editingSpecies && <SpeciesForm entry={editingSpecies.id ? editingSpecies : null} onClose={() => setEditingSpecies(null)} onSave={saveSpecies} />}
 
       {/* Delete confirm */}
       {deleting && (
-        <Modal open onClose={() => setDeleting(null)}>
-          <ConfirmDialog
-            title={`Remove ${deleting.entry.name}?`}
-            body="This will permanently delete this entry and all associated data."
-            onConfirm={confirmDelete}
-            onCancel={() => setDeleting(null)}
-          />
-        </Modal>
+        <ConfirmDialog
+          open
+          title={`Remove ${deleting.entry.name}?`}
+          body="This will permanently delete this entry and all associated data."
+          onConfirm={confirmDelete}
+          onCancel={() => setDeleting(null)}
+        />
       )}
     </Section>
   );
