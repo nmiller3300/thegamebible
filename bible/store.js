@@ -212,11 +212,25 @@
   var subscribers = new Set();
   function notify() { subscribers.forEach(function(fn) { try { fn(); } catch(e) {} }); }
   function setStore(updater) {
-    var prev = store;
+    var prev = JSON.parse(JSON.stringify(store));
     store = typeof updater === 'function' ? updater(store) : Object.assign({}, store, updater);
     notify();
+
     if (store.bestiaryCategories !== prev.bestiaryCategories) saveBestiaryCategories(store.bestiaryCategories);
     if (store.npcArchetypes !== prev.npcArchetypes) saveNpcArchetypes(store.npcArchetypes);
+
+    try {
+      Object.keys(TABLE).forEach(function(collection) {
+        var before = JSON.stringify(prev[collection] || []);
+        var after = JSON.stringify(store[collection] || []);
+
+        if (before !== after) {
+          console.log('Collection changed:', collection);
+        }
+      });
+    } catch(e) {
+      console.error('State sync error', e);
+    }
   }
   function patch(key, value) {
     store[key] = typeof value === 'function' ? value(store[key]) : value;

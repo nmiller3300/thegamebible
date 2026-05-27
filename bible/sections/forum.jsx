@@ -45,7 +45,7 @@ function ForumSection({ route, navigate }) {
       updatedAt: Yfo.nowISO(),
       readBy: [me],
     };
-    Yfo.setStore({ forumThreads: [entry, ...store.forumThreads] });
+    Yfo.addEntry('forumThreads', entry);
     Yfo.logActivity('Forum', 'opened thread', data.title);
     setComposing(false);
     navigate('forum/' + entry.id);
@@ -60,11 +60,10 @@ function ForumSection({ route, navigate }) {
       authorDisplayName: me,
       createdAt: Yfo.nowISO(),
     };
-    Yfo.setStore({
-      forumReplies: [...store.forumReplies, reply],
-      forumThreads: store.forumThreads.map((t) => t.id === threadObj.id
-        ? { ...t, updatedAt: Yfo.nowISO(), readBy: [me] }   // marks unread for everyone else
-        : t),
+    Yfo.addEntry('forumReplies', reply);
+    Yfo.updateEntry('forumThreads', threadObj.id, {
+      updatedAt: Yfo.nowISO(),
+      readBy: [me]
     });
     Yfo.logActivity('Forum', 'replied to', threadObj.title);
   }
