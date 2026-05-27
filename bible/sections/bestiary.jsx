@@ -557,7 +557,7 @@ function BestiarySection() {
               <button className={'filter-chip' + (filterCat==='all' ? ' active' : '')} onClick={() => setFilterCat('all')}>
                 All <span>{store.bestiaryEntries.length}</span>
               </button>
-              {store.bestiaryCategories.map(cat => {
+              {[...new Set(store.bestiaryCategories)].map(cat => {
                 const count = store.bestiaryEntries.filter(e => e.category === cat).length;
                 if (!count) return null;
                 return (

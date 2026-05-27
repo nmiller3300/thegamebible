@@ -13,120 +13,45 @@
     'Prefer': 'return=minimal'
   };
   function restInsert(table, row) {
-    // Get current auth token if user is logged in
-    var session = null;
-    try { session = db.auth.getSession && db.auth.currentSession; } catch(e) {}
-    var headers = Object.assign({}, REST_HEADERS);
-    // Try to get the user's auth token for authenticated writes
-    db.auth.getSession().then(function(s) {
-      if (s && s.data && s.data.session && s.data.session.access_token) {
-        headers['Authorization'] = 'Bearer ' + s.data.session.access_token;
-      }
-      fetch(SUPABASE_URL + '/rest/v1/' + table, {
-        method: 'POST',
-        headers: headers,
-        body: JSON.stringify(row)
-      }).then(function(r) {
-        if (!r.ok) {
-          r.text().then(function(t) {
-            console.error('INSERT FAILED', table, r.status, t);
-            var msg = document.createElement('div');
-            msg.style.cssText = 'position:fixed;bottom:20px;left:50%;transform:translateX(-50%);background:#c0392b;color:white;padding:12px 24px;border-radius:4px;font-family:monospace;font-size:13px;z-index:9999;max-width:700px;text-align:center';
-            msg.textContent = 'Save failed (' + table + ' ' + r.status + '): ' + t;
-            document.body.appendChild(msg);
-            setTimeout(function(){msg.remove();},10000);
-          });
-        }
-      }).catch(function(e) {
-        console.error('INSERT NETWORK ERROR', table, e);
-      });
-    }).catch(function() {
-      // Fall back to anon key
-      fetch(SUPABASE_URL + '/rest/v1/' + table, {
-        method: 'POST',
-        headers: REST_HEADERS,
-        body: JSON.stringify(row)
-      }).then(function(r) {
-        if (!r.ok) r.text().then(function(t){ console.error('INSERT FAILED (anon)', table, r.status, t); });
-      });
+    getRestHeaders().then(function(h) {
+      fetch(SUPABASE_URL + '/rest/v1/' + table, { method: 'POST', headers: h, body: JSON.stringify(row) })
+        .then(function(r) { if (!r.ok) r.text().then(function(t) { showSaveError(table, r.status, t); }); })
+        .catch(function(e) { showSaveError(table, 'network', e.message); });
     });
   }
   function restUpdate(table, id, row) {
-    db.auth.getSession().then(function(s) {
-      var headers = Object.assign({}, REST_HEADERS);
-      if (s && s.data && s.data.session && s.data.session.access_token) {
-        headers['Authorization'] = 'Bearer ' + s.data.session.access_token;
-      }
-      fetch(SUPABASE_URL + '/rest/v1/' + table + '?id=eq.' + encodeURIComponent(id), {
-        method: 'PATCH',
-        headers: headers,
-        body: JSON.stringify(row)
-      }).then(function(r) {
-        if (!r.ok) {
-          r.text().then(function(t) {
-            console.error('UPDATE FAILED', table, r.status, t);
-            var msg = document.createElement('div');
-            msg.style.cssText = 'position:fixed;bottom:20px;left:50%;transform:translateX(-50%);background:#c0392b;color:white;padding:12px 24px;border-radius:4px;font-family:monospace;font-size:13px;z-index:9999;max-width:700px;text-align:center';
-            msg.textContent = 'Update failed (' + table + ' ' + r.status + '): ' + t;
-            document.body.appendChild(msg);
-            setTimeout(function(){msg.remove();},10000);
-          });
-        }
-      }).catch(function(e){ console.error('UPDATE NETWORK ERROR', table, e); });
+    getRestHeaders().then(function(h) {
+      fetch(SUPABASE_URL + '/rest/v1/' + table + '?id=eq.' + encodeURIComponent(id), { method: 'PATCH', headers: h, body: JSON.stringify(row) })
+        .then(function(r) { if (!r.ok) r.text().then(function(t) { showSaveError(table, r.status, t); }); })
+        .catch(function(e) { showSaveError(table, 'network', e.message); });
     });
   }
   function restDelete(table, id) {
-    db.auth.getSession().then(function(s) {
-      var headers = Object.assign({}, REST_HEADERS);
-      if (s && s.data && s.data.session && s.data.session.access_token) {
-        headers['Authorization'] = 'Bearer ' + s.data.session.access_token;
-      }
-      fetch(SUPABASE_URL + '/rest/v1/' + table + '?id=eq.' + encodeURIComponent(id), {
-        method: 'DELETE',
-        headers: headers
-      }).then(function(r) {
-        if (!r.ok) r.text().then(function(t){ console.error('DELETE FAILED', table, r.status, t); });
-      });
+    getRestHeaders().then(function(h) {
+      fetch(SUPABASE_URL + '/rest/v1/' + table + '?id=eq.' + encodeURIComponent(id), { method: 'DELETE', headers: h })
+        .then(function(r) { if (!r.ok) r.text().then(function(t) { showSaveError(table, r.status, t); }); })
+        .catch(function(e) { showSaveError(table, 'network', e.message); });
     });
   }
-
+  // REST write helpers
   const ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRydHVrbXdicm15c2p3a3dpaGJ2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzk4MjU1MTYsImV4cCI6MjA5NTQwMTUxNn0.FqV1i5caIHZtu2EPAYPwT8pGcYUl4ln8SN7_BEz7L_E';
-  function getAuthHeaders() {
+  function getRestHeaders() {
     return db.auth.getSession().then(function(s) {
       var tok = (s && s.data && s.data.session) ? s.data.session.access_token : ANON_KEY;
-      return { 'Content-Type':'application/json', 'apikey': ANON_KEY, 'Authorization': 'Bearer ' + tok, 'Prefer': 'return=minimal' };
+      return { 'Content-Type': 'application/json', 'apikey': ANON_KEY, 'Authorization': 'Bearer ' + tok, 'Prefer': 'return=minimal' };
+    }).catch(function() {
+      return { 'Content-Type': 'application/json', 'apikey': ANON_KEY, 'Authorization': 'Bearer ' + ANON_KEY, 'Prefer': 'return=minimal' };
     });
   }
   function showSaveError(table, status, text) {
     console.error('SAVE FAILED', table, status, text);
     var msg = document.createElement('div');
-    msg.style.cssText = 'position:fixed;bottom:20px;left:50%;transform:translateX(-50%);background:#c0392b;color:white;padding:12px 24px;border-radius:4px;font-family:monospace;font-size:13px;z-index:9999;max-width:700px;text-align:center;box-shadow:0 4px 20px rgba(0,0,0,0.5)';
+    msg.style.cssText = 'position:fixed;bottom:20px;left:50%;transform:translateX(-50%);background:#c0392b;color:white;padding:12px 24px;border-radius:4px;font-family:monospace;font-size:13px;z-index:99999;max-width:700px;text-align:center';
     msg.textContent = 'Save error (' + table + ' ' + status + '): ' + text;
     document.body.appendChild(msg);
-    setTimeout(function(){if(msg.parentNode)msg.remove();},10000);
+    setTimeout(function() { if (msg.parentNode) msg.remove(); }, 10000);
   }
-  function restInsert(table, row) {
-    getAuthHeaders().then(function(h) {
-      fetch(SUPABASE_URL + '/rest/v1/' + table, {method:'POST',headers:h,body:JSON.stringify(row)})
-        .then(function(r){if(!r.ok)r.text().then(function(t){showSaveError(table,r.status,t);});})
-        .catch(function(e){showSaveError(table,'network',e.message);});
-    });
-  }
-  function restUpdate(table, id, row) {
-    getAuthHeaders().then(function(h) {
-      fetch(SUPABASE_URL+'/rest/v1/'+table+'?id=eq.'+encodeURIComponent(id),{method:'PATCH',headers:h,body:JSON.stringify(row)})
-        .then(function(r){if(!r.ok)r.text().then(function(t){showSaveError(table,r.status,t);});})
-        .catch(function(e){showSaveError(table,'network',e.message);});
-    });
-  }
-  function restDelete(table, id) {
-    getAuthHeaders().then(function(h) {
-      fetch(SUPABASE_URL+'/rest/v1/'+table+'?id=eq.'+encodeURIComponent(id),{method:'DELETE',headers:h})
-        .then(function(r){if(!r.ok)r.text().then(function(t){showSaveError(table,r.status,t);});})
-        .catch(function(e){showSaveError(table,'network',e.message);});
-    });
-  }
-  const uid = () => {
+    const uid = () => {
     return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
       var r = Math.random() * 16 | 0, v = c === 'x' ? r : (r & 0x3 | 0x8);
       return v.toString(16);

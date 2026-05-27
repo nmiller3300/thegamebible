@@ -134,10 +134,13 @@ function ForumSection({ route, navigate }) {
           body="The thread and all of its replies will be removed."
           onCancel={() => setDeleting(null)}
           onConfirm={() => {
-            Yfo.setStore({
-              forumThreads: store.forumThreads.filter((t) => t.id !== deleting.id),
-              forumReplies: store.forumReplies.filter((r) => r.threadId !== deleting.id),
-            });
+            Yfo.deleteEntry('forumThreads', deleting.id);
+            store.forumReplies.filter(r => r.threadId === deleting.id).forEach(r => Yfo.deleteEntry('forumReplies', r.id));
+            Yfo.setStore(s => ({
+              ...s,
+              forumThreads: s.forumThreads.filter((t) => t.id !== deleting.id),
+              forumReplies: s.forumReplies.filter((r) => r.threadId !== deleting.id),
+            }));
             Yfo.logActivity('Forum', 'deleted thread', deleting.title);
             navigate('forum');
             setDeleting(null);
