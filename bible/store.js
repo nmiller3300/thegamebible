@@ -260,7 +260,10 @@
       var dlog = results[24], threads = results[25], replies = results[26], act = results[27];
 
       if (s) store.projectSettings = { projectName: s.projectName || 'THE PROJECT', worldName: s.worldName || 'Eravan', mapStatus: s.mapStatus || 'pending' };
-      if (br && br.content) store.theBrain = br;
+      if (br && br.content) {
+        var parsedContent = typeof br.content === 'string' ? JSON.parse(br.content) : br.content;
+        store.theBrain = { content: parsedContent, updatedBy: br.updated_by || br.updatedBy, updatedAt: br.updated_at || br.updatedAt };
+      }
       if (bCats.length) store.bestiaryCategories = bCats.sort(function(a,b){return (a.displayOrder||0)-(b.displayOrder||0);}).map(function(c){return c.name;});
       if (bEnt.length) store.bestiaryEntries = bEnt;
       if (bSp.length) store.bestiarySpecies = bSp;
@@ -300,7 +303,7 @@
   function saveBrain(content) {
     var now = nowISO(), who = currentDisplayName();
     store.theBrain = { content: content, updatedBy: who, updatedAt: now }; notify();
-    db.from('the_brain').update({ content: content, updated_by: who, updated_at: now }).eq('id', 1).then(function(r){if(r.error)console.error(r.error);});
+    db.from('the_brain').update({ content: JSON.stringify(content), updated_by: who, updated_at: now }).eq('id', 1).then(function(r){if(r.error)console.error(r.error);});
   }
   function _saveBlock(table, id, data) {
     db.from(table).update({ content: data.content, is_confirmed: data.isConfirmed, updated_by: currentDisplayName(), updated_at: nowISO() }).eq('id', id).then(function(r){if(r.error)console.error(r.error);});
