@@ -212,25 +212,11 @@
   var subscribers = new Set();
   function notify() { subscribers.forEach(function(fn) { try { fn(); } catch(e) {} }); }
   function setStore(updater) {
-    var prev = JSON.parse(JSON.stringify(store));
+    var prev = store;
     store = typeof updater === 'function' ? updater(store) : Object.assign({}, store, updater);
     notify();
-
     if (store.bestiaryCategories !== prev.bestiaryCategories) saveBestiaryCategories(store.bestiaryCategories);
     if (store.npcArchetypes !== prev.npcArchetypes) saveNpcArchetypes(store.npcArchetypes);
-
-    try {
-      Object.keys(TABLE).forEach(function(collection) {
-        var before = JSON.stringify(prev[collection] || []);
-        var after = JSON.stringify(store[collection] || []);
-
-        if (before !== after) {
-          console.log('Collection changed:', collection);
-        }
-      });
-    } catch(e) {
-      console.error('State sync error', e);
-    }
   }
   function patch(key, value) {
     store[key] = typeof value === 'function' ? value(store[key]) : value;
@@ -418,7 +404,42 @@
   }
   function saveBestiaryCategories(names) {
     // Upsert each category by name
-    var rows = names.map(function(name, i) { return { id: name.toLowerCase().replace(/[^a-z0-9]/g,'_'), name: name, display_order: i }; });
+    var rows = names.map(function(name, i) { 
+
+  async function deleteEntry(collection, id) {
+    try {
+      var table = TABLE[collection];
+      if (!table) {
+        console.error('Unknown collection for delete:', collection);
+        return;
+      }
+
+      var result = await db
+        .from(table)
+        .delete()
+        .eq('id', id);
+
+      if (result.error) {
+        console.error('Delete failed:', result.error);
+        return;
+      }
+
+      setStore(function(prev){
+        var next = Object.assign({}, prev);
+        next[collection] = (prev[collection] || []).filter(function(item){
+          return item.id !== id;
+        });
+        return next;
+      });
+
+      console.log('Deleted from', table, id);
+
+    } catch(e) {
+      console.error('Delete exception:', e);
+    }
+  }
+
+return { id: name.toLowerCase().replace(/[^a-z0-9]/g,'_'), name: name, display_order: i }; });
     db.from('bestiary_categories').upsert(rows, { onConflict: 'id' }).then(function(r){if(r.error)console.error('cats',r.error);});
   }
   function saveNpcArchetypes(archetypes) {
@@ -524,7 +545,8 @@
   window.YSTC = {
     uid: uid, nowISO: nowISO, db: db,
     store: function() { return store; },
-    useStore: useStore, setStore: setStore, patch: patch,
+    useStore: useStore, setStore: setStore,
+    deleteEntry: deleteEntry, patch: patch,
     addEntry: addEntry, updateEntry: updateEntry, deleteEntry: deleteEntry,
     logActivity: logActivity, currentUser: currentUser, currentDisplayName: currentDisplayName,
     stampNew: stampNew, stampUpdate: stampUpdate,
