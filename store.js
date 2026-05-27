@@ -314,7 +314,42 @@
   }
   function saveBestiaryCategories(names) {
     // Upsert each category by name
-    var rows = names.map(function(name, i) { return { id: name.toLowerCase().replace(/[^a-z0-9]/g,'_'), name: name, display_order: i }; });
+    var rows = names.map(function(name, i) { 
+
+  async function deleteEntry(collection, id) {
+    try {
+      var table = TABLE[collection];
+      if (!table) {
+        console.error('Unknown collection for delete:', collection);
+        return;
+      }
+
+      var result = await db
+        .from(table)
+        .delete()
+        .eq('id', id);
+
+      if (result.error) {
+        console.error('Delete failed:', result.error);
+        return;
+      }
+
+      setStore(function(prev){
+        var next = Object.assign({}, prev);
+        next[collection] = (prev[collection] || []).filter(function(item){
+          return item.id !== id;
+        });
+        return next;
+      });
+
+      console.log('Deleted from', table, id);
+
+    } catch(e) {
+      console.error('Delete exception:', e);
+    }
+  }
+
+return { id: name.toLowerCase().replace(/[^a-z0-9]/g,'_'), name: name, display_order: i }; });
     db.from('bestiary_categories').upsert(rows, { onConflict: 'id' }).then(function(r){if(r.error)console.error('cats',r.error);});
   }
   function saveNpcArchetypes(archetypes) {
@@ -406,7 +441,8 @@
   window.YSTC = {
     uid: uid, nowISO: nowISO, db: db,
     store: function() { return store; },
-    useStore: useStore, setStore: setStore, patch: patch,
+    useStore: useStore, setStore: setStore,
+    deleteEntry: deleteEntry, patch: patch,
     addEntry: addEntry, updateEntry: updateEntry, deleteEntry: deleteEntry,
     logActivity: logActivity, currentUser: currentUser, currentDisplayName: currentDisplayName,
     stampNew: stampNew, stampUpdate: stampUpdate,
