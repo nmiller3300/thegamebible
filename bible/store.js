@@ -5,7 +5,12 @@
   const { createClient } = window.supabase;
   const db = createClient(SUPABASE_URL, SUPABASE_KEY, { auth: { persistSession: true, autoRefreshToken: true } });
 
-  const uid = () => 'id_' + Date.now().toString(36) + '_' + Math.random().toString(36).slice(2, 8);
+  const uid = () => {
+    return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
+      var r = Math.random() * 16 | 0, v = c === 'x' ? r : (r & 0x3 | 0x8);
+      return v.toString(16);
+    });
+  };
   const nowISO = () => new Date().toISOString();
 
   function toCamel(row) {
@@ -122,8 +127,11 @@
   var subscribers = new Set();
   function notify() { subscribers.forEach(function(fn) { try { fn(); } catch(e) {} }); }
   function setStore(updater) {
+    var prev = store;
     store = typeof updater === 'function' ? updater(store) : Object.assign({}, store, updater);
     notify();
+    if (store.bestiaryCategories !== prev.bestiaryCategories) saveBestiaryCategories(store.bestiaryCategories);
+    if (store.npcArchetypes !== prev.npcArchetypes) saveNpcArchetypes(store.npcArchetypes);
   }
   function patch(key, value) {
     store[key] = typeof value === 'function' ? value(store[key]) : value;
@@ -150,7 +158,7 @@
     var entry = { id: uid(), when: nowISO(), who: currentDisplayName(), section: section, action: action, what: what };
     store.activity = [entry].concat(store.activity).slice(0, 200);
     notify();
-    db.from('activity').insert({ who: entry.who, section: section, action: action, what: what }).then(function() {}).catch(console.error);
+    db.from('activity').insert({ id: entry.id, who: entry.who, section: section, action: action, what: what, happened_at: nowISO() }).then(function() {}).catch(console.error);
   }
 
   var TABLE = {
@@ -306,7 +314,20 @@
     db.from('the_brain').update({ content: JSON.stringify(content), updated_by: who, updated_at: now }).eq('id', 1).then(function(r){if(r.error)console.error(r.error);});
   }
   function _saveBlock(table, id, data) {
-    db.from(table).update({ content: data.content, is_confirmed: data.isConfirmed, updated_by: currentDisplayName(), updated_at: nowISO() }).eq('id', id).then(function(r){if(r.error)console.error(r.error);});
+    var row = { id: id, content: data.content, is_confirmed: data.isConfirmed, updated_by: currentDisplayName(), updated_at: nowISO() };
+    db.from(table).upsert(row, { onConflict: 'id' }).then(function(r){if(r.error)console.error('block save',r.error);});
+  }
+  function saveBestiaryCategories(names) {
+    // Upsert each category by name
+    var rows = names.map(function(name, i) { return { id: name.toLowerCase().replace(/[^a-z0-9]/g,'_'), name: name, display_order: i }; });
+    db.from('bestiary_categories').upsert(rows, { onConflict: 'id' }).then(function(r){if(r.error)console.error('cats',r.error);});
+  }
+  function saveNpcArchetypes(archetypes) {
+    archetypes.forEach(function(a) {
+      if (a.id && a.id.length < 40) {
+        db.from('npc_archetypes').upsert({ id: a.id, name: a.name, description: a.description }, { onConflict: 'id' }).then(function(r){if(r.error)console.error('archetype',r.error);});
+      }
+    });
   }
   function saveWorldBlock(id, data)    { store.worldBlocks[id] = Object.assign({}, store.worldBlocks[id], data); notify(); _saveBlock('world_blocks', id, data); }
   function saveMilitaryBlock(id, data) { store.militaryBlocks[id] = Object.assign({}, store.militaryBlocks[id], data); notify(); _saveBlock('military_blocks', id, data); }
@@ -314,7 +335,9 @@
   function saveLoreBlock(id, data) {
     if (id==='myths') store.loreMyths = Object.assign({}, store.loreMyths, data);
     if (id==='lost')  store.loreLost  = Object.assign({}, store.loreLost, data);
-    notify(); _saveBlock('lore_blocks', id, data);
+    notify();
+    var row = { id: id, content: data.content, is_confirmed: data.isConfirmed, updated_by: currentDisplayName(), updated_at: nowISO() };
+    db.from('lore_blocks').upsert(row, { onConflict: 'id' }).then(function(r){if(r.error)console.error('lore block',r.error);});
   }
   function saveEconomyBlock(id, data) {
     store.economyBlocks[id] = Object.assign({}, store.economyBlocks[id], data); notify();
@@ -394,6 +417,7 @@
     stampNew: stampNew, stampUpdate: stampUpdate,
     registerUser: registerUser, loginUser: loginUser, logoutUser: logoutUser, updateProfile: updateProfile,
     saveProjectSettings: saveProjectSettings, saveBrain: saveBrain,
+    saveBestiaryCategories: saveBestiaryCategories, saveNpcArchetypes: saveNpcArchetypes,
     saveWorldBlock: saveWorldBlock, saveMilitaryBlock: saveMilitaryBlock,
     saveSocialBlock: saveSocialBlock, saveLoreBlock: saveLoreBlock, saveEconomyBlock: saveEconomyBlock,
     loadAllData: loadAllData,
