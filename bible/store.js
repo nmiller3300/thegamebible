@@ -90,6 +90,42 @@
     });
   }
 
+  const ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRydHVrbXdicm15c2p3a3dpaGJ2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzk4MjU1MTYsImV4cCI6MjA5NTQwMTUxNn0.FqV1i5caIHZtu2EPAYPwT8pGcYUl4ln8SN7_BEz7L_E';
+  function getAuthHeaders() {
+    return db.auth.getSession().then(function(s) {
+      var tok = (s && s.data && s.data.session) ? s.data.session.access_token : ANON_KEY;
+      return { 'Content-Type':'application/json', 'apikey': ANON_KEY, 'Authorization': 'Bearer ' + tok, 'Prefer': 'return=minimal' };
+    });
+  }
+  function showSaveError(table, status, text) {
+    console.error('SAVE FAILED', table, status, text);
+    var msg = document.createElement('div');
+    msg.style.cssText = 'position:fixed;bottom:20px;left:50%;transform:translateX(-50%);background:#c0392b;color:white;padding:12px 24px;border-radius:4px;font-family:monospace;font-size:13px;z-index:9999;max-width:700px;text-align:center;box-shadow:0 4px 20px rgba(0,0,0,0.5)';
+    msg.textContent = 'Save error (' + table + ' ' + status + '): ' + text;
+    document.body.appendChild(msg);
+    setTimeout(function(){if(msg.parentNode)msg.remove();},10000);
+  }
+  function restInsert(table, row) {
+    getAuthHeaders().then(function(h) {
+      fetch(SUPABASE_URL + '/rest/v1/' + table, {method:'POST',headers:h,body:JSON.stringify(row)})
+        .then(function(r){if(!r.ok)r.text().then(function(t){showSaveError(table,r.status,t);});})
+        .catch(function(e){showSaveError(table,'network',e.message);});
+    });
+  }
+  function restUpdate(table, id, row) {
+    getAuthHeaders().then(function(h) {
+      fetch(SUPABASE_URL+'/rest/v1/'+table+'?id=eq.'+encodeURIComponent(id),{method:'PATCH',headers:h,body:JSON.stringify(row)})
+        .then(function(r){if(!r.ok)r.text().then(function(t){showSaveError(table,r.status,t);});})
+        .catch(function(e){showSaveError(table,'network',e.message);});
+    });
+  }
+  function restDelete(table, id) {
+    getAuthHeaders().then(function(h) {
+      fetch(SUPABASE_URL+'/rest/v1/'+table+'?id=eq.'+encodeURIComponent(id),{method:'DELETE',headers:h})
+        .then(function(r){if(!r.ok)r.text().then(function(t){showSaveError(table,r.status,t);});})
+        .catch(function(e){showSaveError(table,'network',e.message);});
+    });
+  }
   const uid = () => {
     return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
       var r = Math.random() * 16 | 0, v = c === 'x' ? r : (r & 0x3 | 0x8);

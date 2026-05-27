@@ -306,7 +306,7 @@ function FactionsSection() {
       {editingTension && (
         <TensionForm entry={editingTension.id ? editingTension : null} onClose={() => setEditingTension(null)} onSave={saveTension} />
       )}
-      {deleting && <Modal open onClose={() => setDeleting(null)}><ConfirmDialog title={`Remove ${deleting.entry.name||deleting.entry.title}?`} body="This permanently deletes this record." onConfirm={confirmDelete} onCancel={() => setDeleting(null)} /></Modal>}
+      {deleting && <ConfirmDialog title={`Remove ${deleting.entry.name||deleting.entry.title}?`} body="This permanently deletes this record." onConfirm={confirmDelete} onCancel={() => setDeleting(null)} />}
     </Section>
   );
 }

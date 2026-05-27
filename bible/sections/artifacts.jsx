@@ -204,7 +204,7 @@ function ArtifactsSection() {
         ? <EmptyState dark title="No artifacts registered." body="Every significant object in the world gets a full registry entry." action={<button className="btn primary" onClick={()=>setEditing({})}><Icon name="plus" size={13}/> Add the first artifact</button>}/>
         : <div className="creature-grid">{store.artifacts.map(e=><ArtifactCard key={e.id} entry={e} onClick={()=>openDossier(e)} onEdit={()=>setEditing(e)} onDelete={()=>setDeleting({collection:'artifacts',entry:e})}/>)}</div>}
       {editing&&<ArtifactForm entry={editing.id?editing:null} onClose={()=>setEditing(null)} onSave={save}/>}
-      {deleting&&<Modal open onClose={()=>setDeleting(null)}><ConfirmDialog title={`Remove ${deleting.entry.name}?`} body="This permanently deletes this registry entry." onConfirm={confirmDelete} onCancel={()=>setDeleting(null)}/></Modal>}
+      {deleting&&<ConfirmDialog title={`Remove ${deleting.entry.name}?`} body="This permanently deletes this registry entry." onConfirm={confirmDelete} onCancel={()=>setDeleting(null)}/>}
     </Section>
   );
 }

@@ -638,14 +638,12 @@ function BestiarySection() {
 
       {/* Delete confirm */}
       {deleting && (
-        <Modal open onClose={() => setDeleting(null)}>
-          <ConfirmDialog
+        <ConfirmDialog
             title={`Remove ${deleting.entry.name}?`}
             body="This will permanently delete this entry and all associated data."
             onConfirm={confirmDelete}
             onCancel={() => setDeleting(null)}
           />
-        </Modal>
       )}
     </Section>
   );

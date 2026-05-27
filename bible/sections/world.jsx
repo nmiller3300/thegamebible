@@ -42,12 +42,25 @@ function WorldSection() {
           </h3>
           <StatusPill status={store.projectSettings.mapStatus === 'uploaded' ? 'confirmed' : 'pending'} />
         </div>
-        <ImageSlot
-          value={mapImageUrl}
-          onChange={handleMapUpload}
-          height={400}
-          label="Upload White's map when it is ready"
-        />
+        {mapImageUrl ? (
+          <div style={{ position:'relative', borderRadius:2, overflow:'hidden', background:'var(--paper-2)' }}>
+            <img
+              src={mapImageUrl}
+              alt="World map"
+              style={{ width:'100%', height:'auto', display:'block', maxHeight:'none', objectFit:'unset' }}
+            />
+            <button type="button" onClick={() => handleMapUpload('')} style={{ position:'absolute', top:10, right:10, background:'var(--imperial)', color:'var(--paper)', border:'none', borderRadius:2, padding:'4px 10px', cursor:'pointer', fontFamily:'var(--mono)', fontSize:10, letterSpacing:'0.12em', textTransform:'uppercase' }}>Remove</button>
+            <button type="button" onClick={() => document.getElementById('map-upload-input').click()} style={{ position:'absolute', top:10, left:10, background:'oklch(0.16 0.014 60 / 0.75)', color:'var(--paper)', border:'none', borderRadius:2, padding:'4px 10px', cursor:'pointer', fontFamily:'var(--mono)', fontSize:10, letterSpacing:'0.12em', textTransform:'uppercase' }}>Replace</button>
+            <input id="map-upload-input" type="file" accept="image/*" style={{ display:'none' }} onChange={async (e) => { const f = e.target.files[0]; if(f){ const url = await window.YSTC.uploadImage(f); handleMapUpload(url); } }} />
+          </div>
+        ) : (
+          <ImageSlot
+            value=""
+            onChange={handleMapUpload}
+            height={400}
+            label="Upload White's map when it is ready"
+          />
+        )}
         <div style={{ marginTop: 18 }}>
           <Field label="Map notes">
             <TextArea

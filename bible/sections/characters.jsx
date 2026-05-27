@@ -319,7 +319,7 @@ function CharactersSection() {
           <div className="modal-actions"><span></span><div className="right"><button className="btn on-paper ghost" onClick={() => setEditingArchetypes(false)}>Cancel</button><button className="btn on-paper primary" onClick={() => { Yc.setStore({ npcArchetypes: archetypeDraft }); setEditingArchetypes(false); }}>Save</button></div></div>
         </Modal>
       )}
-      {deleting && <Modal open onClose={() => setDeleting(null)}><ConfirmDialog title={`Remove ${deleting.entry.name}?`} body="This permanently deletes this character record." onConfirm={confirmDelete} onCancel={() => setDeleting(null)} /></Modal>}
+      {deleting && <ConfirmDialog title={`Remove ${deleting.entry.name}?`} body="This permanently deletes this character record." onConfirm={confirmDelete} onCancel={() => setDeleting(null)} />}
     </Section>
   );
 }

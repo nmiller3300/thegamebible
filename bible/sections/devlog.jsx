@@ -149,9 +149,7 @@ function DevlogSection() {
       )}
 
       {deleting && (
-        <Modal open onClose={() => setDeleting(null)}>
-          <ConfirmDialog title="Remove this entry?" body="This permanently deletes it." onConfirm={confirmDelete} onCancel={() => setDeleting(null)} />
-        </Modal>
+        <ConfirmDialog title="Remove this entry?" body="This permanently deletes it." onConfirm={confirmDelete} onCancel={() => setDeleting(null)} />
       )}
     </Section>
   );

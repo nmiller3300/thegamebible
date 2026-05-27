@@ -165,7 +165,7 @@ function RumoursSection() {
       )}
 
       {editing && <RumourForm entry={editing.id?editing:null} onClose={() => setEditing(null)} onSave={save} />}
-      {deleting && <Modal open onClose={() => setDeleting(null)}><ConfirmDialog title="Remove this rumour?" body="This permanently deletes it." onConfirm={confirmDelete} onCancel={() => setDeleting(null)} /></Modal>}
+      {deleting && <ConfirmDialog title="Remove this rumour?" body="This permanently deletes it." onConfirm={confirmDelete} onCancel={() => setDeleting(null)} />}
     </Section>
   );
 }
