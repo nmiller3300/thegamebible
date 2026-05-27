@@ -40,8 +40,10 @@ function App() {
     case 'economy':    view = <EconomySection />; break;
     case 'military':   view = <MilitarySection />; break;
     case 'society':    view = <SocietySection />; break;
+    case 'rumours':    view = <RumoursSection />; break;
+    case 'calendar':   view = <CalendarSection />; break;
     case 'artifacts':  view = <ArtifactsSection />; break;
-    case 'devlog':     view = <DevLogSection />; break;
+    case 'devlog':     view = <DevlogSection />; break;
     case 'forum':      view = <ForumSection route={route} navigate={navigate} />; break;
     case 'settings':   view = <SettingsSection navigate={navigate} />; break;
     default:           view = <Dashboard navigate={navigate} />; break;
