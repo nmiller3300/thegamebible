@@ -143,17 +143,20 @@ function ConfirmDialog({ open = true, title, body, confirmLabel = 'Delete', dang
   if (!open) return null;
   const blocked = !!requireType && typed.trim().toUpperCase() !== String(requireType).toUpperCase();
   return (
-    <div className="confirm-scrim" onMouseDown={(e) => { if (e.target === e.currentTarget) onCancel(); }}>
-      <div className="confirm" role="alertdialog" aria-modal="true">
-        <h3>{title}</h3>
-        <p>{body}</p>
+    <div
+      onMouseDown={(e) => { if (e.target === e.currentTarget) onCancel(); }}
+      style={{ position:'fixed', inset:0, zIndex:9999, background:'oklch(0.08 0.01 60 / 0.82)', backdropFilter:'blur(4px)', display:'flex', alignItems:'center', justifyContent:'center', padding:'20px' }}
+    >
+      <div style={{ background:'var(--paper)', color:'var(--ink)', borderRadius:2, padding:'28px 32px', width:'min(440px, 100%)', boxShadow:'0 40px 80px -30px oklch(0 0 0 / 0.7)' }} role="alertdialog" aria-modal="true">
+        <h3 style={{ fontFamily:'var(--serif)', fontStyle:'italic', fontWeight:500, fontSize:24, margin:'0 0 8px' }}>{title}</h3>
+        <p style={{ color:'var(--ink-2)', margin:'0 0 18px' }}>{body}</p>
         {requireType ? (
           <div className="field">
             <label>Type <b style={{letterSpacing:'0.18em'}}>{requireType}</b> to confirm</label>
             <input type="text" value={typed} onChange={(e) => setTyped(e.target.value)} autoFocus />
           </div>
         ) : null}
-        <div className="actions">
+        <div style={{ display:'flex', justifyContent:'flex-end', gap:10 }}>
           <button className="btn on-paper ghost" onClick={onCancel}>Cancel</button>
           <button
             className={'btn on-paper ' + (danger ? 'danger' : 'primary')}
