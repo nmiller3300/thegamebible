@@ -180,7 +180,16 @@
     store[collection] = [entry].concat(store[collection]);
     notify();
     var table = TABLE[collection];
-    if (table) db.from(table).insert(toSnake(entry)).then(function(r) { if (r.error) console.error('insert', r.error); });
+    if (table) db.from(table).insert(toSnake(entry)).then(function(r) {
+      if (r.error) {
+        console.error('INSERT FAILED', table, r.error);
+        var msg = document.createElement('div');
+        msg.style.cssText = 'position:fixed;bottom:20px;left:50%;transform:translateX(-50%);background:#c0392b;color:white;padding:12px 24px;border-radius:4px;font-family:monospace;font-size:13px;z-index:9999;max-width:600px;text-align:center';
+        msg.textContent = 'Save failed (' + table + '): ' + r.error.message;
+        document.body.appendChild(msg);
+        setTimeout(function(){msg.remove();}, 8000);
+      }
+    });
     return entry;
   }
   function updateEntry(collection, id, patchData) {
@@ -193,7 +202,16 @@
     if (table) {
       var row = toSnake(Object.assign({}, patchData, stampUpdate()));
       delete row.id;
-      db.from(table).update(row).eq('id', id).then(function(r) { if (r.error) console.error('update', r.error); });
+      db.from(table).update(row).eq('id', id).then(function(r) {
+        if (r.error) {
+          console.error('UPDATE FAILED', table, r.error);
+          var msg = document.createElement('div');
+          msg.style.cssText = 'position:fixed;bottom:20px;left:50%;transform:translateX(-50%);background:#c0392b;color:white;padding:12px 24px;border-radius:4px;font-family:monospace;font-size:13px;z-index:9999;max-width:600px;text-align:center';
+          msg.textContent = 'Update failed (' + table + '): ' + r.error.message;
+          document.body.appendChild(msg);
+          setTimeout(function(){msg.remove();}, 8000);
+        }
+      });
     }
     return merged;
   }
