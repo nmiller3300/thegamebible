@@ -174,15 +174,7 @@ function CreatureDossier({ entry, onBack, onEdit }) {
           )}
         </div>
       </div>
-            <ImageSlot
-              value={meta[key] || ''}
-              onChange={(url) => updateMeta({ [key]: url })}
-              height={180}
-              label={sub}
-            />
-          </div>
-        ))}
-      </div>
+
 
       {/* Field study tabs */}
       <div className="dossier-deepdive">

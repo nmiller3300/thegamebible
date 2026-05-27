@@ -110,6 +110,7 @@
     ],
     artifacts: [],
     devLog: [],
+    decisions: [],
     forumThreads: [],
     forumReplies: [],
     activity: [],

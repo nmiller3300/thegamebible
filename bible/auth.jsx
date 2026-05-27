@@ -112,3 +112,73 @@ function LoginScreen() {
 }
 
 window.LoginScreen = LoginScreen;
+
+// ── White's onboarding — shown on first login if hasSeenOnboarding is false ──
+function OnboardingWelcome({ onDone }) {
+  const store = window.YSTC.useStore();
+  const [step, setStep] = useState(0);
+  const name = window.YSTC.currentDisplayName();
+  const isNew = name && name.toLowerCase().includes('white');
+
+  const steps = [
+    {
+      kicker: 'Welcome to',
+      heading: store.projectSettings.projectName || 'THE PROJECT',
+      sub: store.projectSettings.worldName ? `World of ${store.projectSettings.worldName}` : 'A world being built',
+      body: `This is the Game Bible. Everything that exists in this world lives here — creatures, characters, factions, history, magic, and the rules the world runs on. It is a shared document for both of you. Anything either of you adds, the other sees immediately.`,
+      action: 'Keep going',
+    },
+    {
+      kicker: 'What this is',
+      heading: 'A living document',
+      body: `The Brain holds the non-negotiables — the core philosophy the game won't break. Everything else is being decided as you go. Some entries are confirmed. Others are pending. Nothing here is wasted work.`,
+      action: 'Keep going',
+    },
+    {
+      kicker: 'How it works',
+      heading: 'Click anything to open it',
+      body: `Every creature, character, faction, and artifact opens into its own full document. You can add content, upload images, and leave notes. The sidebar on the left takes you anywhere. The Forum is for back-and-forth between the two of you. The Decision Log is where reasoning gets recorded so it isn't forgotten.`,
+      action: 'Start exploring',
+    },
+  ];
+
+  const current = steps[step];
+
+  return (
+    <div style={{ position:'fixed', inset:0, background:'var(--bg)', zIndex:200, display:'flex', flexDirection:'column', alignItems:'center', justifyContent:'center', padding:40 }}>
+      <div style={{ position:'relative', zIndex:1, width:'min(680px, 100%)', textAlign:'center' }}>
+        <div style={{ fontFamily:'var(--mono)', fontSize:11, letterSpacing:'0.24em', textTransform:'uppercase', color:'var(--imperial)', marginBottom:18, display:'flex', alignItems:'center', justifyContent:'center', gap:12 }}>
+          <span style={{ display:'inline-block', width:28, height:1, background:'currentColor', verticalAlign:'middle' }}></span>
+          {current.kicker}
+          <span style={{ display:'inline-block', width:28, height:1, background:'currentColor', verticalAlign:'middle' }}></span>
+        </div>
+        <h1 style={{ fontFamily:'var(--serif)', fontWeight:500, fontStyle:'italic', fontSize:'clamp(42px, 7vw, 80px)', lineHeight:0.95, letterSpacing:'-0.015em', color:'var(--paper)', margin:'0 0 8px' }}>
+          {current.heading}
+        </h1>
+        {current.sub && (
+          <div style={{ fontFamily:'var(--serif)', fontStyle:'italic', color:'var(--ash)', fontSize:18, marginBottom:32 }}>{current.sub}</div>
+        )}
+        <p style={{ fontFamily:'var(--serif)', fontSize:18, color:'var(--ivory)', lineHeight:1.7, margin:'24px auto 40px', maxWidth:'52ch', opacity:0.9 }}>
+          {current.body}
+        </p>
+        <div style={{ display:'flex', alignItems:'center', justifyContent:'center', gap:16 }}>
+          {step > 0 && (
+            <button className="btn ghost" onClick={() => setStep(s => s - 1)}>Back</button>
+          )}
+          <button className="btn primary" style={{ padding:'12px 32px', fontSize:13 }} onClick={() => {
+            if (step < steps.length - 1) setStep(s => s + 1);
+            else onDone();
+          }}>
+            {current.action}
+          </button>
+        </div>
+        <div style={{ display:'flex', gap:8, justifyContent:'center', marginTop:28 }}>
+          {steps.map((_, i) => (
+            <div key={i} style={{ width: i===step ? 20 : 6, height:6, borderRadius:3, background: i===step ? 'var(--imperial)' : 'var(--rule-dark)', transition:'all 0.25s' }}></div>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+}
+window.OnboardingWelcome = OnboardingWelcome;
