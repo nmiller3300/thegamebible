@@ -1397,3 +1397,135 @@ body::before {
 .decision-dot { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; box-shadow: 0 0 0 3px oklch(0.45 0.135 27 / 0.15); }
 .decision-line { flex: 1; width: 1px; background: var(--rule-dark); margin-top: 8px; }
 .decision-card { margin-bottom: 0; }
+
+/* ===== GLOBAL SEARCH ===== */
+.topbar-search-btn {
+  display: inline-flex; align-items: center; gap: 8px;
+  appearance: none; background: oklch(0.20 0.014 60 / 0.6);
+  border: 1px solid var(--rule-darker); border-radius: 2px;
+  color: var(--ash); cursor: pointer; padding: 6px 14px;
+  font-family: var(--mono); font-size: 11px; letter-spacing: 0.12em;
+  text-transform: uppercase; transition: all 0.14s;
+}
+.topbar-search-btn:hover { border-color: var(--ash); color: var(--paper); }
+.topbar-search-btn kbd {
+  background: var(--rule-darker); border-radius: 2px;
+  padding: 1px 5px; font-size: 10px; color: var(--ash-2);
+}
+
+.search-scrim {
+  position: fixed; inset: 0; z-index: 500;
+  background: oklch(0.08 0.01 60 / 0.85);
+  backdrop-filter: blur(4px);
+  display: flex; align-items: flex-start; justify-content: center;
+  padding: 80px 20px 40px;
+}
+.search-modal {
+  width: min(660px, 100%);
+  background: oklch(0.19 0.014 60);
+  border: 1px solid var(--rule-dark);
+  border-radius: 4px;
+  box-shadow: 0 40px 80px -20px oklch(0 0 0 / 0.8);
+  overflow: hidden;
+  animation: modalEnter 0.18s cubic-bezier(0.22, 1, 0.36, 1);
+}
+.search-input-row {
+  display: flex; align-items: center; gap: 14px;
+  padding: 18px 20px; border-bottom: 1px solid var(--rule-dark);
+}
+.search-input {
+  flex: 1; background: transparent; border: 0; outline: none;
+  font-family: var(--serif); font-size: 20px; color: var(--paper);
+  caret-color: var(--imperial);
+}
+.search-input::placeholder { color: var(--ash-2); opacity: 0.5; }
+.search-esc {
+  font-family: var(--mono); font-size: 10px; letter-spacing: 0.14em;
+  text-transform: uppercase; color: var(--ash-2); cursor: pointer;
+  background: var(--rule-darker); padding: 3px 7px; border-radius: 2px;
+  flex-shrink: 0;
+}
+.search-results { max-height: 420px; overflow-y: auto; }
+.search-hint { padding: 24px 20px; }
+.search-empty { padding: 48px 20px; text-align: center; color: var(--ash); }
+
+.search-result {
+  display: flex; align-items: center; gap: 12px; padding: 12px 20px;
+  cursor: pointer; border-bottom: 1px solid var(--rule-darker);
+  transition: background 0.1s;
+}
+.search-result:last-child { border-bottom: 0; }
+.search-result:hover, .search-result.active { background: oklch(0.22 0.016 60); }
+.search-result-badge {
+  font-family: var(--mono); font-size: 9.5px; letter-spacing: 0.14em;
+  text-transform: uppercase; padding: 3px 8px; border-radius: 2px;
+  border: 1px solid; white-space: nowrap; flex-shrink: 0;
+}
+.search-result-body { flex: 1; min-width: 0; }
+.search-result-name {
+  font-family: var(--serif); font-style: italic; font-size: 17px;
+  color: var(--paper); margin-bottom: 2px;
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+.search-result-label {
+  font-family: var(--mono); font-size: 10px; letter-spacing: 0.12em;
+  text-transform: uppercase; color: var(--ash); margin-bottom: 3px;
+}
+.search-result-excerpt {
+  font-size: 13px; color: var(--ash-2); line-height: 1.4;
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+.search-footer {
+  display: flex; gap: 18px; padding: 10px 20px;
+  border-top: 1px solid var(--rule-darker);
+  font-family: var(--mono); font-size: 10px; letter-spacing: 0.12em;
+  text-transform: uppercase; color: var(--ash-2);
+}
+
+/* ===== RUMOUR MILL ===== */
+.rumour-card { cursor: pointer; transition: transform 0.18s cubic-bezier(0.22,1,0.36,1), box-shadow 0.18s; }
+.rumour-card:hover { transform: translateY(-2px); box-shadow: 0 28px 52px -24px oklch(0 0 0 / 0.55); }
+.rumour-card-head { display: flex; gap: 16px; align-items: flex-start; }
+.rumour-card-body { margin-top: 18px; padding-top: 16px; border-top: 1px dashed var(--rule); }
+.rumour-row { display: grid; grid-template-columns: 1fr 32px 1fr; gap: 0; align-items: start; }
+.rumour-col { padding: 0 16px; }
+.rumour-col:first-child { padding-left: 0; border-right: 1px dashed var(--rule); }
+.rumour-col.truth { border-left: 2px solid var(--moss); padding-left: 20px; }
+.rumour-col p { color: var(--ink-2); margin: 0; line-height: 1.65; font-size: 15.5px; }
+.rumour-col-label { font-family: var(--mono); font-size: 10px; letter-spacing: 0.18em; text-transform: uppercase; color: var(--ink-mute); margin-bottom: 8px; }
+.rumour-col.truth .rumour-col-label { color: var(--moss); }
+.rumour-divider { display: flex; align-items: center; justify-content: center; color: var(--ink-mute); font-size: 18px; padding-top: 28px; }
+
+/* ===== SEASONAL CALENDAR ===== */
+.season-selector { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-bottom: 28px; }
+.season-tab {
+  appearance: none; border: 1px solid var(--rule-dark); background: transparent;
+  border-radius: 2px; padding: 20px 18px; cursor: pointer; text-align: left;
+  transition: all 0.18s cubic-bezier(0.22,1,0.36,1); position: relative; overflow: hidden;
+}
+.season-tab:hover { border-color: var(--sc); background: oklch(from var(--sc) l c h / 0.05); transform: translateY(-2px); }
+.season-tab.active { border-color: var(--sc); background: oklch(from var(--sc) l c h / 0.08); box-shadow: 0 0 0 1px var(--sc); }
+.season-tab-name { font-family: var(--serif); font-style: italic; font-size: 24px; color: var(--paper); margin-bottom: 2px; }
+.season-tab.active .season-tab-name { color: var(--sc); }
+.season-tab-latin { font-family: var(--mono); font-size: 10px; letter-spacing: 0.18em; text-transform: uppercase; color: var(--ash); }
+.season-tab-count { position: absolute; top: 14px; right: 16px; font-family: var(--mono); font-size: 11px; color: var(--sc); opacity: 0.7; }
+
+.season-header { padding: 18px 0 16px; border-bottom: 1px solid; margin-bottom: 22px; }
+
+.calendar-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 16px; }
+.calendar-entry { border-top: 3px solid var(--sc); }
+
+.season-overview { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin-top: 16px; }
+.season-overview-col { border-top: 2px solid var(--sc); padding-top: 14px; }
+.season-overview-head { font-family: var(--serif); font-style: italic; font-size: 18px; color: var(--sc); margin-bottom: 12px; }
+.season-overview-item { padding: 8px 0; border-bottom: 1px dashed var(--rule-dark); }
+.season-overview-item:last-child { border-bottom: 0; }
+
+@media (max-width: 900px) {
+  .season-selector { grid-template-columns: repeat(2, 1fr); }
+  .season-overview { grid-template-columns: repeat(2, 1fr); }
+  .rumour-row { grid-template-columns: 1fr; }
+  .rumour-divider { display: none; }
+  .rumour-col { padding: 0; border: 0 !important; }
+  .rumour-col.truth { border-left: 2px solid var(--moss) !important; padding-left: 16px; margin-top: 16px; }
+}

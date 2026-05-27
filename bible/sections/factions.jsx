@@ -237,6 +237,16 @@ function FactionsSection() {
   const [editingTension, setEditingTension] = useState(null);
   const [deleting, setDeleting] = useState(null);
 
+
+  // Jump to entry from global search
+  useEffect(() => {
+    if (window._ystcJumpTo && window._ystcJumpTo.section === 'factions') {
+      var target = store.factions.find(e => e.id === window._ystcJumpTo.entryId);
+      if (target) { setSelectedId(target.id); setView('dossier'); }
+      window._ystcJumpTo = null;
+    }
+  }, [store.factions]);
+
   const selectedEntry = selectedId ? store.factions.find(e => e.id === selectedId) : null;
 
   function openDossier(e) { setSelectedId(e.id); setView('dossier'); }

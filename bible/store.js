@@ -111,6 +111,8 @@
     artifacts: [],
     devLog: [],
     decisions: [],
+    rumours: [],
+    calendarEntries: [],
     forumThreads: [],
     forumReplies: [],
     activity: [],

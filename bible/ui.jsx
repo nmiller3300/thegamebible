@@ -318,3 +318,154 @@ Object.assign(window, {
   Field, TextInput, TextArea, Select, ConfirmedToggle,
   EmptyState, ImageSlot, Section, TbdBanner, StatusToggle,
 });
+
+// ── Global Search ─────────────────────────────────────────────────────────
+function GlobalSearch({ onClose, onNavigate }) {
+  const store = window.YSTC.useStore();
+  const [query, setQuery] = useState('');
+  const [selected, setSelected] = useState(0);
+  const inputRef = useRef(null);
+
+  useEffect(() => {
+    if (inputRef.current) inputRef.current.focus();
+    function onKey(e) {
+      if (e.key === 'Escape') onClose();
+    }
+    document.addEventListener('keydown', onKey);
+    return () => document.removeEventListener('keydown', onKey);
+  }, []);
+
+  const q = query.toLowerCase().trim();
+
+  const results = q.length < 2 ? [] : (() => {
+    var hits = [];
+    var push = (section, key, label, name, excerpt, entryId) => {
+      if (hits.length < 40) hits.push({ section, key, label, name, excerpt, entryId });
+    };
+    var match = (text) => text && text.toLowerCase().includes(q);
+
+    store.bestiaryEntries.forEach(e => {
+      if (match(e.name) || match(e.appearance) || match(e.lore) || match(e.habitat))
+        push('Bestiary', 'bestiary', e.category, e.name, e.appearance || e.lore || e.habitat || '', e.id);
+    });
+    store.characters.forEach(e => {
+      if (match(e.name) || match(e.role) || match(e.personality) || match(e.motivation) || match(e.location))
+        push('Characters', 'characters', e.role || 'Character', e.name, e.personality || e.motivation || '', e.id);
+    });
+    store.factions.forEach(e => {
+      if (match(e.name) || match(e.reputation) || match(e.economy) || match(e.factionType))
+        push('Factions', 'factions', e.factionType || 'Faction', e.name, e.reputation || e.economy || '', e.id);
+    });
+    store.artifacts.forEach(e => {
+      if (match(e.name) || match(e.appearance) || match(e.lore) || match(e.tier))
+        push('Artifacts', 'artifacts', e.tier || e.artifactType || 'Artifact', e.name, e.appearance || e.lore || '', e.id);
+    });
+    store.magicEntries.forEach(e => {
+      if (match(e.section) || match(e.content))
+        push('Magic', 'magic', 'Magic System', e.section, e.content || '', e.id);
+    });
+    store.loreEras.forEach(e => {
+      if (match(e.name) || match(e.description))
+        push('Lore', 'lore', e.type || 'Era', e.name, e.description || '', e.id);
+    });
+    store.loreEvents.forEach(e => {
+      if (match(e.eventName) || match(e.lastingImpact))
+        push('Lore', 'lore', 'Historical Event', e.eventName, e.lastingImpact || '', e.id);
+    });
+    (store.decisions || []).forEach(e => {
+      if (match(e.what) || match(e.why))
+        push('Decisions', 'devlog', e.section || 'Decision', e.what, e.why || '', e.id);
+    });
+    store.devLog.forEach(e => {
+      if (match(e.content))
+        push('Dev Log', 'devlog', 'Note', e.content.slice(0, 60), e.content, e.id);
+    });
+    return hits;
+  })();
+
+  useEffect(() => { setSelected(0); }, [query]);
+
+  function handleKey(e) {
+    if (e.key === 'ArrowDown') { e.preventDefault(); setSelected(s => Math.min(s + 1, results.length - 1)); }
+    if (e.key === 'ArrowUp')   { e.preventDefault(); setSelected(s => Math.max(s - 1, 0)); }
+    if (e.key === 'Enter' && results[selected]) { pick(results[selected]); }
+  }
+
+  function pick(r) {
+    window._ystcJumpTo = { section: r.key, entryId: r.entryId };
+    onNavigate(r.key);
+    onClose();
+  }
+
+  const SECTION_COLORS = {
+    Bestiary:'var(--imperial)', Characters:'oklch(0.65 0.14 75)',
+    Factions:'oklch(0.55 0.14 250)', Artifacts:'oklch(0.6 0.14 310)',
+    Magic:'oklch(0.55 0.14 200)', Lore:'var(--moss)', Decisions:'var(--ash)', 'Dev Log':'var(--ash)',
+  };
+
+  return (
+    <div className="search-scrim" onClick={onClose}>
+      <div className="search-modal" onClick={e => e.stopPropagation()}>
+        <div className="search-input-row">
+          <Icon name="search" size={18} stroke={1.5} style={{ color:'var(--ash)', flexShrink:0 }} />
+          <input
+            ref={inputRef}
+            className="search-input"
+            value={query}
+            onChange={e => setQuery(e.target.value)}
+            onKeyDown={handleKey}
+            placeholder="Search the Game Bible…"
+            autoComplete="off"
+            spellCheck={false}
+          />
+          <span className="search-esc" onClick={onClose}>ESC</span>
+        </div>
+        <div className="search-results">
+          {q.length < 2 && (
+            <div className="search-hint">
+              <div style={{ fontFamily:'var(--mono)', fontSize:10.5, letterSpacing:'0.16em', textTransform:'uppercase', color:'var(--ash)', marginBottom:12 }}>Search across</div>
+              <div style={{ display:'flex', flexWrap:'wrap', gap:8 }}>
+                {['Bestiary','Characters','Factions','Artifacts','Magic','Lore','Decisions','Dev Log'].map(s => (
+                  <span key={s} style={{ fontFamily:'var(--mono)', fontSize:10, letterSpacing:'0.14em', textTransform:'uppercase', color: SECTION_COLORS[s] || 'var(--ash)', background: (SECTION_COLORS[s] || 'var(--ash)') + '18', border:'1px solid ' + (SECTION_COLORS[s] || 'var(--ash)') + '44', padding:'3px 9px', borderRadius:2 }}>{s}</span>
+                ))}
+              </div>
+            </div>
+          )}
+          {q.length >= 2 && results.length === 0 && (
+            <div className="search-empty">
+              <div style={{ fontFamily:'var(--serif)', fontStyle:'italic', fontSize:18, marginBottom:6 }}>Nothing found</div>
+              <div style={{ fontFamily:'var(--mono)', fontSize:10.5, letterSpacing:'0.12em', color:'var(--ash)', textTransform:'uppercase' }}>No entries match "{query}"</div>
+            </div>
+          )}
+          {results.map((r, i) => (
+            <div key={r.section + r.entryId} className={'search-result' + (i === selected ? ' active' : '')} onClick={() => pick(r)}>
+              <div className="search-result-badge" style={{ color: SECTION_COLORS[r.section] || 'var(--ash)', borderColor: (SECTION_COLORS[r.section] || 'var(--ash)') + '55', background: (SECTION_COLORS[r.section] || 'var(--ash)') + '12' }}>
+                {r.section}
+              </div>
+              <div className="search-result-body">
+                <div className="search-result-name">{r.name}</div>
+                {r.label && <div className="search-result-label">{r.label}</div>}
+                {r.excerpt && (
+                  <div className="search-result-excerpt">
+                    {r.excerpt.slice(0, 120)}{r.excerpt.length > 120 ? '…' : ''}
+                  </div>
+                )}
+              </div>
+              <Icon name="chevronRight" size={14} style={{ color:'var(--ash)', opacity: i===selected?1:0, flexShrink:0 }} />
+            </div>
+          ))}
+        </div>
+        {results.length > 0 && (
+          <div className="search-footer">
+            <span>↑↓ navigate</span>
+            <span>↵ open</span>
+            <span>ESC close</span>
+            <span style={{ marginLeft:'auto' }}>{results.length} result{results.length !== 1 ? 's' : ''}</span>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
+window.GlobalSearch = GlobalSearch;

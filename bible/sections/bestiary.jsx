@@ -455,6 +455,16 @@ function BestiarySection() {
   const [managingCats, setManagingCats] = useState(false);
   const [filterCat, setFilterCat] = useState('all');
 
+
+  // Jump to entry from global search
+  useEffect(() => {
+    if (window._ystcJumpTo && window._ystcJumpTo.section === 'bestiary') {
+      var target = store.bestiaryEntries.find(e => e.id === window._ystcJumpTo.entryId);
+      if (target) { setSelectedId(target.id); setView('dossier'); }
+      window._ystcJumpTo = null;
+    }
+  }, [store.bestiaryEntries]);
+
   const selectedEntry = selectedId ? store.bestiaryEntries.find(e => e.id === selectedId) : null;
 
   function openDossier(entry) { setSelectedId(entry.id); setView('dossier'); }

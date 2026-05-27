@@ -265,6 +265,16 @@ function CharactersSection() {
   const [editingArchetypes, setEditingArchetypes] = useState(false);
   const [archetypeDraft, setArchetypeDraft] = useState([]);
 
+
+  // Jump to entry from global search
+  useEffect(() => {
+    if (window._ystcJumpTo && window._ystcJumpTo.section === 'characters') {
+      var target = store.characters.find(e => e.id === window._ystcJumpTo.entryId);
+      if (target) { setSelectedId(target.id); setView('dossier'); }
+      window._ystcJumpTo = null;
+    }
+  }, [store.characters]);
+
   const selectedEntry = selectedId ? store.characters.find(e => e.id === selectedId) : null;
 
   function openDossier(e) { setSelectedId(e.id); setView('dossier'); }

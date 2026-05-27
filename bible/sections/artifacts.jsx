@@ -165,6 +165,16 @@ function ArtifactsSection() {
   const [editing, setEditing] = useState(null);
   const [deleting, setDeleting] = useState(null);
   const [editingTiers, setEditingTiers] = useState(false);
+
+  // Jump to entry from global search
+  useEffect(() => {
+    if (window._ystcJumpTo && window._ystcJumpTo.section === 'artifacts') {
+      var target = store.artifacts.find(e => e.id === window._ystcJumpTo.entryId);
+      if (target) { setSelectedId(target.id); setView('dossier'); }
+      window._ystcJumpTo = null;
+    }
+  }, [store.artifacts]);
+
   const selectedEntry = selectedId ? store.artifacts.find(e=>e.id===selectedId) : null;
   function openDossier(e) { setSelectedId(e.id); setView('dossier'); }
   function closeDossier() { setView('list'); setSelectedId(null); }
