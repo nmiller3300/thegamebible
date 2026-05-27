@@ -445,6 +445,14 @@ main { min-width: 0; }
   padding: 60px 20px 40px;
   overflow-y: auto;
 }
+/* Confirm dialog needs its own centred scrim */
+.confirm-scrim {
+  position: fixed; inset: 0; z-index: 200;
+  background: oklch(0.08 0.01 60 / 0.78);
+  backdrop-filter: blur(3px);
+  display: flex; align-items: center; justify-content: center;
+  padding: 20px;
+}
 .modal {
   background: var(--paper);
   color: var(--ink);

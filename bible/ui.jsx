@@ -137,13 +137,13 @@ function Modal({ open, onClose, children, width = 'normal' }) {
 }
 
 // ── Confirm dialog ───────────────────────────────────────────────────────
-function ConfirmDialog({ open, title, body, confirmLabel = 'Delete', danger = true, onCancel, onConfirm, requireType }) {
+function ConfirmDialog({ open = true, title, body, confirmLabel = 'Delete', danger = true, onCancel, onConfirm, requireType }) {
   const [typed, setTyped] = useState('');
   useEffect(() => { if (!open) setTyped(''); }, [open]);
   if (!open) return null;
   const blocked = !!requireType && typed.trim().toUpperCase() !== String(requireType).toUpperCase();
   return (
-    <div className="modal-scrim" onMouseDown={(e) => { if (e.target === e.currentTarget) onCancel(); }}>
+    <div className="confirm-scrim" onMouseDown={(e) => { if (e.target === e.currentTarget) onCancel(); }}>
       <div className="confirm" role="alertdialog" aria-modal="true">
         <h3>{title}</h3>
         <p>{body}</p>
