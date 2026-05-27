@@ -1,7 +1,7 @@
 /* bible/store.js — Supabase-backed store */
 (function () {
   const SUPABASE_URL = 'https://trtukmwbrmysjwkwihbv.supabase.co';
-  const SUPABASE_KEY = 'sb_publishable_j2XMYAZOQ9ECBEBq1jx93w_VC4fZ02x';
+  const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRydHVrbXdicm15c2p3a3dpaGJ2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzk4MjU1MTYsImV4cCI6MjA5NTQwMTUxNn0.FqV1i5caIHZtu2EPAYPwT8pGcYUl4ln8SN7_BEz7L_E';
   const { createClient } = window.supabase;
   const db = createClient(SUPABASE_URL, SUPABASE_KEY, { auth: { persistSession: true, autoRefreshToken: true } });
 

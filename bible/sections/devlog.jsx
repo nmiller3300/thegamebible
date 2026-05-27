@@ -10,7 +10,7 @@ function DevlogSection() {
 
   function addNote() {
     if (!draft.trim()) return;
-    Ydl.addEntry('devLog', { content: draft, author: Ydl.currentDisplayName() });
+    Ydl.addEntry('devLog', { content: draft, authorDisplayName: Ydl.currentDisplayName() });
     Ydl.logActivity('Dev Log', 'added', 'note');
     setDraft('');
   }
@@ -133,7 +133,7 @@ function DevlogSection() {
               {[...store.devLog].reverse().map(e => (
                 <div key={e.id} className="paper-card tight" style={{ position:'relative' }}>
                   <div style={{ fontFamily:'var(--mono)', fontSize:10, letterSpacing:'0.12em', color:'var(--ink-mute)', textTransform:'uppercase', marginBottom:8 }}>
-                    {e.author || 'Unknown'} · {Ydl.formatStamp(e.createdAt)}
+                    {e.authorDisplayName || e.author || 'Unknown'} · {Ydl.formatStamp(e.createdAt)}
                   </div>
                   <p style={{ margin:0, color:'var(--ink-2)', lineHeight:1.65 }}>{e.content}</p>
                   <button className="btn small on-paper danger" style={{ position:'absolute', top:12, right:12 }} onClick={() => setDeleting({ collection:'devLog', entry:e })}><Icon name="trash" size={10}/></button>
@@ -188,3 +188,4 @@ function DecisionForm({ entry, onClose, onSave }) {
 }
 
 window.DevlogSection = DevlogSection;
+window.DevLogSection = DevlogSection;
