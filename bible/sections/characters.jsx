@@ -11,7 +11,7 @@ function CharacterCard({ entry, onClick, onEdit, onDelete }) {
     <div className="creature-card" onClick={onClick} title="Open dossier">
       <div className="creature-card-image">
         {entry.imageUrl
-          ? <img src={entry.imageUrl} alt={entry.name} />
+          ? <img src={entry.imageUrl} alt={entry.name} style={{ objectFit:'contain', background:'var(--paper-2)', padding:'8px' }} />
           : <div className="creature-card-placeholder"><Icon name="user" size={28} stroke={1.2} /><div>Portrait pending</div></div>}
         <div className="creature-card-threat" style={{ background: magicColor + '22', color: magicColor, borderColor: magicColor + '55' }}>
           {entry.magicStatus || 'Unknown'}

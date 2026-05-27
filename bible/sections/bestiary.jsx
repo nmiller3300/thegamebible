@@ -29,7 +29,7 @@ function CreatureCard({ entry, onClick, onEdit, onDelete }) {
     <div className="creature-card" onClick={onClick} title="Open dossier">
       <div className="creature-card-image">
         {mainImg
-          ? <img src={mainImg} alt={entry.name} />
+          ? <img src={mainImg} alt={entry.name} style={{ objectFit:'contain', background:'var(--paper-2)', padding:'8px' }} />
           : (
             <div className="creature-card-placeholder">
               <Icon name="shield" size={28} stroke={1.2} />
@@ -146,6 +146,7 @@ function CreatureDossier({ entry, onBack, onEdit }) {
             value={meta.imgMain || entry.imageUrl || ''}
             onChange={(url) => updateMeta({ imgMain: url })}
             height={420}
+            fit="contain"
             label="Primary reference — side profile, neutral stance, plain background"
           />
           {entry.habitat && (

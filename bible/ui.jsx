@@ -218,7 +218,7 @@ function EmptyState({ icon = 'scroll', title, body, action, dark }) {
 }
 
 // ── Image upload component — click to upload, shows preview when filled ──
-function ImageSlot({ label = 'Click to upload image', height = 200, value, onChange }) {
+function ImageSlot({ label = 'Click to upload image', height = 200, value, onChange, fit = 'cover', bg = null }) {
   const [uploading, setUploading] = useState(false);
   const inputRef = useRef(null);
 
@@ -239,7 +239,7 @@ function ImageSlot({ label = 'Click to upload image', height = 200, value, onCha
   if (value) {
     return (
       <div style={{ position: 'relative', borderRadius: 2, overflow: 'hidden' }}>
-        <img src={value} alt="entry image" style={{ width: '100%', height: height, objectFit: 'cover', display: 'block' }} />
+        <img src={value} alt="entry image" style={{ width: '100%', height: height, objectFit: fit, objectPosition: 'center', display: 'block', background: bg || (fit === 'contain' ? 'oklch(0.925 0.020 82)' : 'transparent') }} />
         <button
           type="button"
           onClick={() => { if(onChange) onChange(''); }}

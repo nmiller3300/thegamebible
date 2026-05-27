@@ -10,7 +10,7 @@ function ArtifactCard({ entry, onClick, onEdit, onDelete }) {
     <div className="creature-card" onClick={onClick} title="Open registry">
       <div className="creature-card-image">
         {entry.imageUrl
-          ? <img src={entry.imageUrl} alt={entry.name} />
+          ? <img src={entry.imageUrl} alt={entry.name} style={{ objectFit:'contain', background:'var(--paper-2)', padding:'8px' }} />
           : <div className="creature-card-placeholder"><Icon name="star" size={28} stroke={1.2}/><div>Image pending</div></div>}
         <div className="creature-card-threat" style={{ background:tierColor+'22', color:tierColor, borderColor:tierColor+'55' }}>
           {entry.tier || '—'}
