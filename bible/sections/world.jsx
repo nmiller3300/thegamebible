@@ -43,11 +43,11 @@ function WorldSection() {
           <StatusPill status={store.projectSettings.mapStatus === 'uploaded' ? 'confirmed' : 'pending'} />
         </div>
         {mapImageUrl ? (
-          <div style={{ position:'relative', borderRadius:2, overflow:'hidden', background:'var(--paper-2)' }}>
+          <div style={{ position:'relative', borderRadius:2, background:'var(--paper-2)', lineHeight:0 }}>
             <img
               src={mapImageUrl}
               alt="World map"
-              style={{ width:'100%', height:'auto', display:'block', maxHeight:'none', objectFit:'unset' }}
+              style={{ width:'100%', height:'auto', display:'block' }}
             />
             <button type="button" onClick={() => handleMapUpload('')} style={{ position:'absolute', top:10, right:10, background:'var(--imperial)', color:'var(--paper)', border:'none', borderRadius:2, padding:'4px 10px', cursor:'pointer', fontFamily:'var(--mono)', fontSize:10, letterSpacing:'0.12em', textTransform:'uppercase' }}>Remove</button>
             <button type="button" onClick={() => document.getElementById('map-upload-input').click()} style={{ position:'absolute', top:10, left:10, background:'oklch(0.16 0.014 60 / 0.75)', color:'var(--paper)', border:'none', borderRadius:2, padding:'4px 10px', cursor:'pointer', fontFamily:'var(--mono)', fontSize:10, letterSpacing:'0.12em', textTransform:'uppercase' }}>Replace</button>
