@@ -5,6 +5,91 @@
   const { createClient } = window.supabase;
   const db = createClient(SUPABASE_URL, SUPABASE_KEY, { auth: { persistSession: true, autoRefreshToken: true } });
 
+  // Direct REST API writer — bypasses supabase-js for writes since the REST API is confirmed working
+  const REST_HEADERS = {
+    'Content-Type': 'application/json',
+    'apikey': SUPABASE_KEY,
+    'Authorization': 'Bearer ' + SUPABASE_KEY,
+    'Prefer': 'return=minimal'
+  };
+  function restInsert(table, row) {
+    // Get current auth token if user is logged in
+    var session = null;
+    try { session = db.auth.getSession && db.auth.currentSession; } catch(e) {}
+    var headers = Object.assign({}, REST_HEADERS);
+    // Try to get the user's auth token for authenticated writes
+    db.auth.getSession().then(function(s) {
+      if (s && s.data && s.data.session && s.data.session.access_token) {
+        headers['Authorization'] = 'Bearer ' + s.data.session.access_token;
+      }
+      fetch(SUPABASE_URL + '/rest/v1/' + table, {
+        method: 'POST',
+        headers: headers,
+        body: JSON.stringify(row)
+      }).then(function(r) {
+        if (!r.ok) {
+          r.text().then(function(t) {
+            console.error('INSERT FAILED', table, r.status, t);
+            var msg = document.createElement('div');
+            msg.style.cssText = 'position:fixed;bottom:20px;left:50%;transform:translateX(-50%);background:#c0392b;color:white;padding:12px 24px;border-radius:4px;font-family:monospace;font-size:13px;z-index:9999;max-width:700px;text-align:center';
+            msg.textContent = 'Save failed (' + table + ' ' + r.status + '): ' + t;
+            document.body.appendChild(msg);
+            setTimeout(function(){msg.remove();},10000);
+          });
+        }
+      }).catch(function(e) {
+        console.error('INSERT NETWORK ERROR', table, e);
+      });
+    }).catch(function() {
+      // Fall back to anon key
+      fetch(SUPABASE_URL + '/rest/v1/' + table, {
+        method: 'POST',
+        headers: REST_HEADERS,
+        body: JSON.stringify(row)
+      }).then(function(r) {
+        if (!r.ok) r.text().then(function(t){ console.error('INSERT FAILED (anon)', table, r.status, t); });
+      });
+    });
+  }
+  function restUpdate(table, id, row) {
+    db.auth.getSession().then(function(s) {
+      var headers = Object.assign({}, REST_HEADERS);
+      if (s && s.data && s.data.session && s.data.session.access_token) {
+        headers['Authorization'] = 'Bearer ' + s.data.session.access_token;
+      }
+      fetch(SUPABASE_URL + '/rest/v1/' + table + '?id=eq.' + encodeURIComponent(id), {
+        method: 'PATCH',
+        headers: headers,
+        body: JSON.stringify(row)
+      }).then(function(r) {
+        if (!r.ok) {
+          r.text().then(function(t) {
+            console.error('UPDATE FAILED', table, r.status, t);
+            var msg = document.createElement('div');
+            msg.style.cssText = 'position:fixed;bottom:20px;left:50%;transform:translateX(-50%);background:#c0392b;color:white;padding:12px 24px;border-radius:4px;font-family:monospace;font-size:13px;z-index:9999;max-width:700px;text-align:center';
+            msg.textContent = 'Update failed (' + table + ' ' + r.status + '): ' + t;
+            document.body.appendChild(msg);
+            setTimeout(function(){msg.remove();},10000);
+          });
+        }
+      }).catch(function(e){ console.error('UPDATE NETWORK ERROR', table, e); });
+    });
+  }
+  function restDelete(table, id) {
+    db.auth.getSession().then(function(s) {
+      var headers = Object.assign({}, REST_HEADERS);
+      if (s && s.data && s.data.session && s.data.session.access_token) {
+        headers['Authorization'] = 'Bearer ' + s.data.session.access_token;
+      }
+      fetch(SUPABASE_URL + '/rest/v1/' + table + '?id=eq.' + encodeURIComponent(id), {
+        method: 'DELETE',
+        headers: headers
+      }).then(function(r) {
+        if (!r.ok) r.text().then(function(t){ console.error('DELETE FAILED', table, r.status, t); });
+      });
+    });
+  }
+
   const uid = () => {
     return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
       var r = Math.random() * 16 | 0, v = c === 'x' ? r : (r & 0x3 | 0x8);
@@ -180,16 +265,7 @@
     store[collection] = [entry].concat(store[collection]);
     notify();
     var table = TABLE[collection];
-    if (table) db.from(table).insert(toSnake(entry)).then(function(r) {
-      if (r.error) {
-        console.error('INSERT FAILED', table, r.error);
-        var msg = document.createElement('div');
-        msg.style.cssText = 'position:fixed;bottom:20px;left:50%;transform:translateX(-50%);background:#c0392b;color:white;padding:12px 24px;border-radius:4px;font-family:monospace;font-size:13px;z-index:9999;max-width:600px;text-align:center';
-        msg.textContent = 'Save failed (' + table + '): ' + r.error.message;
-        document.body.appendChild(msg);
-        setTimeout(function(){msg.remove();}, 8000);
-      }
-    });
+    if (table) restInsert(table, toSnake(entry));
     return entry;
   }
   function updateEntry(collection, id, patchData) {
@@ -202,16 +278,7 @@
     if (table) {
       var row = toSnake(Object.assign({}, patchData, stampUpdate()));
       delete row.id;
-      db.from(table).update(row).eq('id', id).then(function(r) {
-        if (r.error) {
-          console.error('UPDATE FAILED', table, r.error);
-          var msg = document.createElement('div');
-          msg.style.cssText = 'position:fixed;bottom:20px;left:50%;transform:translateX(-50%);background:#c0392b;color:white;padding:12px 24px;border-radius:4px;font-family:monospace;font-size:13px;z-index:9999;max-width:600px;text-align:center';
-          msg.textContent = 'Update failed (' + table + '): ' + r.error.message;
-          document.body.appendChild(msg);
-          setTimeout(function(){msg.remove();}, 8000);
-        }
-      });
+      restUpdate(table, id, row);
     }
     return merged;
   }
@@ -219,7 +286,7 @@
     store[collection] = store[collection].filter(function(e) { return String(e.id) !== String(id); });
     notify();
     var table = TABLE[collection];
-    if (table) db.from(table).delete().eq('id', id).then(function(r) { if (r.error) console.error('delete', r.error); });
+    if (table) restDelete(table, id);
   }
 
   async function registerUser(opts) {
